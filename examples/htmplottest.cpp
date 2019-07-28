@@ -3,33 +3,72 @@
 #include <xtensor/xarray.hpp>
 #include <chrono>
 #include <thread>
+#include <ncurses.h>
+
+#define NCOLS 16
 
 void countdown(tm *ltm); 
+void printSdr(const xt::xarray<bool> sdri, const int maxcols);
+void manipulatePrevLine();
+const std::string ACTIVE{"\u25A0"};
+const std::string INACTIVE{"\u25A1"};
+
+
 
 int main(){
-	int i; 
-	th::ScalarEncoder scalarEncoder(0,100,128,12);
+	int maxlines, maxcols; 
+	th::ScalarEncoder scalarEncoder(0,100,256,12);
 
-	for(i=0; i < 10; i++) {
-		time_t now = time(0);
-   		tm *ltm = localtime(&now);
-		countdown(ltm);
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		// std::cout << xt::cast<int>(scalarEncoder.encode(i)) + "\r";
-	}
+	
+	// Initialize curses
+	initscr();
+	cbreak();
+	noecho();
+	clear();  
+	
+	maxcols = COLS -1 ;  	
+	printSdr(scalarEncoder.encode(54), maxcols);
+
+
 }
 
 void countdown(tm *ltm)
 {
-	int h = 13 - ltm->tm_hour;
-	int m = 59 - ltm->tm_min;
-	int s = 59 - ltm->tm_sec;
+	int s = ltm->tm_sec;
+	std::string status;
+	if(s%2==0) {
+		status = ACTIVE;
+	} else {
+		status = INACTIVE;
+	}
 
-	std::stringstream ss;
-	ss << h << ":" << m << ":" << s;
-	std::string string = ss.str();
 	std::cout << '\r'
-		  << std::setw(2) << std::setfill('0') << h << ':'
-		  << std::setw(2) << m << ':'
-		  << std::setw(2) << s << std::flush;
+		  << status
+		  << std::flush;
+}
+
+void printSdr(const xt::xarray<bool> sdr, const int maxcols) {
+	std::string status;
+	int i, xi, yi;
+	for(i = 0; i < sdr.size(); i++) {
+		xi = i % maxcols; 
+		yi = i / maxcols;
+		if(sdr[i])	
+			status = ACTIVE;
+		else 
+			status = INACTIVE;
+		mvaddstr(xi,yi,status.c_str());
+	}
+}
+
+void manipulatePrevLine() {
+
+	int i; 
+	std::cout << std::to_string(0) << std::endl; 
+	std::cout << std::to_string(0) << std::endl; 
+	for (i = 0; i < 100; i++) {
+		std::cout << "\e[A" << " up " << std::to_string(i) << std::endl; 
+		std::cout << "\e[A" << " down " << std::to_string(i) << std::endl; 
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}
 }

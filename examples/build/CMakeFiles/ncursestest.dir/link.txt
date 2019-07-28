@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/ncursestest.dir/ncursestest.cpp.o  -o ncursestest -Wl,-rpath,/home/johker/miniconda3/lib -lcurses /home/johker/miniconda3/lib/libform.so 
