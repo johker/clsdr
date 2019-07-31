@@ -8,9 +8,12 @@ include_directories( ~/workspace/tiny_htm)
 project(htmplottest)
 find_package(xtl REQUIRED)
 find_package(xtensor REQUIRED)
+find_package(Curses REQUIRED)
 add_executable(htmplottest htmplottest.cpp)
+target_link_libraries(htmplottest ${CURSES_LIBRARY})
 
 project(ncursestest)
 find_package(Curses REQUIRED)
 add_executable(ncursestest ncursestest.cpp)
-target_link_libraries(ncursestest ${CURSES_LIBRARIES})
+target_link_libraries(ncursestest ${CURSES_LIBRARY})
+

@@ -1,50 +1,66 @@
 #include "../../tiny_htm/tiny_htm/tiny_htm.hpp"
 #include <iostream>
+#include <string>
 #include <xtensor/xarray.hpp>
 #include <chrono>
 #include <thread>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
+#include <locale.h>
 
-#define NCOLS 16
+#define NCOLS 16 
 
-void countdown(tm *ltm); 
 void printSdr(const xt::xarray<bool> sdri, const int maxcols);
-void manipulatePrevLine();
+
 const std::string ACTIVE{"\u25A0"};
 const std::string INACTIVE{"\u25A1"};
 
 
 
 int main(){
-	int maxlines, maxcols; 
-	th::ScalarEncoder scalarEncoder(0,100,256,12);
+	int avrows,avcols;
+	int i; 
+	int xi,yi;
+	int xoff,yoff; 
+	int maxrows,maxcols;
 
-	
-	// Initialize curses
+	setlocale(LC_ALL, "");
 	initscr();
-	cbreak();
-	noecho();
-	clear();  
+	getmaxyx(stdscr,avrows,avcols); 
+
+
+	th::ScalarEncoder scalarEncoder(0,100,256,12);
+	auto sdr = scalarEncoder.encode(54); 
+
+	maxcols = avcols < NCOLS << 1 ? avcols : NCOLS << 1;
+	maxrows = (sdr.size() << 1) / maxcols; 
+
+	yoff = (avrows - maxrows) >> 1; 
+	xoff = (avcols - maxcols) >> 1; 
 	
-	maxcols = COLS -1 ;  	
-	printSdr(scalarEncoder.encode(54), maxcols);
+	
+	mvprintw(avrows-2,0,"xoff = %d yoff = %d \n", xoff, yoff); 
+	mvprintw(avrows-3,0,"avcols= %d avrows = %d \n", avcols,avrows); 
+	mvprintw(avrows-4,0,"maxcols= %d maxrows = %d \n", maxcols,maxrows); 
 
-
-}
-
-void countdown(tm *ltm)
-{
-	int s = ltm->tm_sec;
-	std::string status;
-	if(s%2==0) {
-		status = ACTIVE;
-	} else {
-		status = INACTIVE;
+	for(i = 0; i < sdr.size(); i++) {
+		xi = (i << 1) % maxcols + xoff;
+                yi = (i << 1) / maxcols + yoff;
+        
+		if(sdr[i]) {
+			mvprintw(yi,xi,ACTIVE.c_str());
+			mvaddch(yi,xi-1,' ');
+		}
+		else {
+			mvprintw(yi,xi,INACTIVE.c_str()); 
+			mvaddch(yi,xi-1,' ');
+		}
 	}
+        
+        refresh();
+        getch();
+        endwin();
 
-	std::cout << '\r'
-		  << status
-		  << std::flush;
+	return 0;
 }
 
 void printSdr(const xt::xarray<bool> sdr, const int maxcols) {
@@ -53,22 +69,25 @@ void printSdr(const xt::xarray<bool> sdr, const int maxcols) {
 	for(i = 0; i < sdr.size(); i++) {
 		xi = i % maxcols; 
 		yi = i / maxcols;
-		if(sdr[i])	
-			status = ACTIVE;
-		else 
-			status = INACTIVE;
-		mvaddstr(xi,yi,status.c_str());
+		if(sdr[i]) {
+			mvaddch(yi,xi,'*');
+			refresh();
+			//status = "0";//ACTIVE;
+		}	
+		else {
+			//status = "1";//INACTIVE;
+			mvaddch(yi,xi,'0');
+			refresh();
+		}
+		// mvaddstr(yi,xi,status.c_str());
+		refresh();
 	}
 }
 
-void manipulatePrevLine() {
 
-	int i; 
-	std::cout << std::to_string(0) << std::endl; 
-	std::cout << std::to_string(0) << std::endl; 
-	for (i = 0; i < 100; i++) {
-		std::cout << "\e[A" << " up " << std::to_string(i) << std::endl; 
-		std::cout << "\e[A" << " down " << std::to_string(i) << std::endl; 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	}
-}
+
+
+
+
+
+
