@@ -9,7 +9,7 @@
 
 #define NCOLS 16 
 
-void printSdr(const xt::xarray<bool> sdri, const int maxcols);
+void printSDR(const xt::xarray<bool> & sdr, const int maxrows, const int maxcols, const int xoff, const int yoff);
 
 const std::string ACTIVE{"\u25A0"};
 const std::string INACTIVE{"\u25A1"};
@@ -17,9 +17,10 @@ const std::string INACTIVE{"\u25A1"};
 
 
 int main(){
+
+	int i;
+	int sdrsize;
 	int avrows,avcols;
-	int i; 
-	int xi,yi;
 	int xoff,yoff; 
 	int maxrows,maxcols;
 
@@ -27,63 +28,49 @@ int main(){
 	initscr();
 	getmaxyx(stdscr,avrows,avcols); 
 
-
-	th::ScalarEncoder scalarEncoder(0,100,256,12);
-	auto sdr = scalarEncoder.encode(54); 
+	sdrsize = 256;
+	th::ScalarEncoder scalarEncoder(0,100,sdrsize,12);
 
 	maxcols = avcols < NCOLS << 1 ? avcols : NCOLS << 1;
-	maxrows = (sdr.size() << 1) / maxcols; 
+	maxrows = (sdrsize << 1) / maxcols; 
 
 	yoff = (avrows - maxrows) >> 1; 
 	xoff = (avcols - maxcols) >> 1; 
 	
-	
-	mvprintw(avrows-2,0,"xoff = %d yoff = %d \n", xoff, yoff); 
-	mvprintw(avrows-3,0,"avcols= %d avrows = %d \n", avcols,avrows); 
-	mvprintw(avrows-4,0,"maxcols= %d maxrows = %d \n", maxcols,maxrows); 
+	//mvprintw(avrows-2,0,"xoff = %d yoff = %d \n", xoff, yoff); 
+	//mvprintw(avrows-3,0,"avcols= %d avrows = %d \n", avcols,avrows); 
+	//mvprintw(avrows-4,0,"maxcols= %d maxrows = %d \n", maxcols,maxrows); 
 
-	for(i = 0; i < sdr.size(); i++) {
-		xi = (i << 1) % maxcols + xoff;
-                yi = (i << 1) / maxcols + yoff;
-        
-		if(sdr[i]) {
-			mvprintw(yi,xi,ACTIVE.c_str());
-			mvaddch(yi,xi-1,' ');
-		}
-		else {
-			mvprintw(yi,xi,INACTIVE.c_str()); 
-			mvaddch(yi,xi-1,' ');
-		}
+	for(i = 0; i<100; i++) {
+		auto sdr = scalarEncoder.encode(std::rand()%100); 
+		printSDR(sdr,maxrows,maxcols,xoff,yoff);
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        	refresh();
 	}
-        
-        refresh();
+	
         getch();
         endwin();
 
 	return 0;
 }
 
-void printSdr(const xt::xarray<bool> sdr, const int maxcols) {
-	std::string status;
-	int i, xi, yi;
+void printSDR(const xt::xarray<bool> & sdr, const int maxrows, const int maxcols, const int xoff, const int yoff){
+	int i; 
+	int xi,yi;
 	for(i = 0; i < sdr.size(); i++) {
-		xi = i % maxcols; 
-		yi = i / maxcols;
-		if(sdr[i]) {
-			mvaddch(yi,xi,'*');
-			refresh();
-			//status = "0";//ACTIVE;
-		}	
-		else {
-			//status = "1";//INACTIVE;
-			mvaddch(yi,xi,'0');
-			refresh();
-		}
-		// mvaddstr(yi,xi,status.c_str());
-		refresh();
-	}
-}
+                xi = (i << 1) % maxcols + xoff;
+                yi = (i << 1) / maxcols + yoff;
 
+                if(sdr[i]) {
+                        mvprintw(yi,xi,ACTIVE.c_str());
+                        mvaddch(yi,xi-1,' ');
+                }
+                else {
+                        mvprintw(yi,xi,INACTIVE.c_str());
+                        mvaddch(yi,xi-1,' ');
+                }
+	}	
+}
 
 
 
