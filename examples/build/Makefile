@@ -111,84 +111,44 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named htmplottest
+# Target rules for targets named phtest
 
 # Build rule for target.
-htmplottest: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 htmplottest
-.PHONY : htmplottest
+phtest: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 phtest
+.PHONY : phtest
 
 # fast build rule for target.
-htmplottest/fast:
-	$(MAKE) -f CMakeFiles/htmplottest.dir/build.make CMakeFiles/htmplottest.dir/build
-.PHONY : htmplottest/fast
+phtest/fast:
+	$(MAKE) -f CMakeFiles/phtest.dir/build.make CMakeFiles/phtest.dir/build
+.PHONY : phtest/fast
 
-#=============================================================================
-# Target rules for targets named ncursestest
+phtest.o: phtest.cpp.o
 
-# Build rule for target.
-ncursestest: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 ncursestest
-.PHONY : ncursestest
-
-# fast build rule for target.
-ncursestest/fast:
-	$(MAKE) -f CMakeFiles/ncursestest.dir/build.make CMakeFiles/ncursestest.dir/build
-.PHONY : ncursestest/fast
-
-htmplottest.o: htmplottest.cpp.o
-
-.PHONY : htmplottest.o
+.PHONY : phtest.o
 
 # target to build an object file
-htmplottest.cpp.o:
-	$(MAKE) -f CMakeFiles/htmplottest.dir/build.make CMakeFiles/htmplottest.dir/htmplottest.cpp.o
-.PHONY : htmplottest.cpp.o
+phtest.cpp.o:
+	$(MAKE) -f CMakeFiles/phtest.dir/build.make CMakeFiles/phtest.dir/phtest.cpp.o
+.PHONY : phtest.cpp.o
 
-htmplottest.i: htmplottest.cpp.i
+phtest.i: phtest.cpp.i
 
-.PHONY : htmplottest.i
-
-# target to preprocess a source file
-htmplottest.cpp.i:
-	$(MAKE) -f CMakeFiles/htmplottest.dir/build.make CMakeFiles/htmplottest.dir/htmplottest.cpp.i
-.PHONY : htmplottest.cpp.i
-
-htmplottest.s: htmplottest.cpp.s
-
-.PHONY : htmplottest.s
-
-# target to generate assembly for a file
-htmplottest.cpp.s:
-	$(MAKE) -f CMakeFiles/htmplottest.dir/build.make CMakeFiles/htmplottest.dir/htmplottest.cpp.s
-.PHONY : htmplottest.cpp.s
-
-ncursestest.o: ncursestest.cpp.o
-
-.PHONY : ncursestest.o
-
-# target to build an object file
-ncursestest.cpp.o:
-	$(MAKE) -f CMakeFiles/ncursestest.dir/build.make CMakeFiles/ncursestest.dir/ncursestest.cpp.o
-.PHONY : ncursestest.cpp.o
-
-ncursestest.i: ncursestest.cpp.i
-
-.PHONY : ncursestest.i
+.PHONY : phtest.i
 
 # target to preprocess a source file
-ncursestest.cpp.i:
-	$(MAKE) -f CMakeFiles/ncursestest.dir/build.make CMakeFiles/ncursestest.dir/ncursestest.cpp.i
-.PHONY : ncursestest.cpp.i
+phtest.cpp.i:
+	$(MAKE) -f CMakeFiles/phtest.dir/build.make CMakeFiles/phtest.dir/phtest.cpp.i
+.PHONY : phtest.cpp.i
 
-ncursestest.s: ncursestest.cpp.s
+phtest.s: phtest.cpp.s
 
-.PHONY : ncursestest.s
+.PHONY : phtest.s
 
 # target to generate assembly for a file
-ncursestest.cpp.s:
-	$(MAKE) -f CMakeFiles/ncursestest.dir/build.make CMakeFiles/ncursestest.dir/ncursestest.cpp.s
-.PHONY : ncursestest.cpp.s
+phtest.cpp.s:
+	$(MAKE) -f CMakeFiles/phtest.dir/build.make CMakeFiles/phtest.dir/phtest.cpp.s
+.PHONY : phtest.cpp.s
 
 # Help Target
 help:
@@ -197,15 +157,11 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
+	@echo "... phtest"
 	@echo "... edit_cache"
-	@echo "... htmplottest"
-	@echo "... ncursestest"
-	@echo "... htmplottest.o"
-	@echo "... htmplottest.i"
-	@echo "... htmplottest.s"
-	@echo "... ncursestest.o"
-	@echo "... ncursestest.i"
-	@echo "... ncursestest.s"
+	@echo "... phtest.o"
+	@echo "... phtest.i"
+	@echo "... phtest.s"
 .PHONY : help
 
 

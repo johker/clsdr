@@ -65,76 +65,39 @@ CMAKE_SOURCE_DIR = /home/johker/workspace/plot_htm/examples
 CMAKE_BINARY_DIR = /home/johker/workspace/plot_htm/examples/build
 
 #=============================================================================
-# Target rules for target CMakeFiles/htmplottest.dir
+# Target rules for target CMakeFiles/phtest.dir
 
 # All Build rule for target.
-CMakeFiles/htmplottest.dir/all:
-	$(MAKE) -f CMakeFiles/htmplottest.dir/build.make CMakeFiles/htmplottest.dir/depend
-	$(MAKE) -f CMakeFiles/htmplottest.dir/build.make CMakeFiles/htmplottest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/johker/workspace/plot_htm/examples/build/CMakeFiles --progress-num=1,2 "Built target htmplottest"
-.PHONY : CMakeFiles/htmplottest.dir/all
+CMakeFiles/phtest.dir/all:
+	$(MAKE) -f CMakeFiles/phtest.dir/build.make CMakeFiles/phtest.dir/depend
+	$(MAKE) -f CMakeFiles/phtest.dir/build.make CMakeFiles/phtest.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/johker/workspace/plot_htm/examples/build/CMakeFiles --progress-num=1,2 "Built target phtest"
+.PHONY : CMakeFiles/phtest.dir/all
 
 # Include target in all.
-all: CMakeFiles/htmplottest.dir/all
+all: CMakeFiles/phtest.dir/all
 
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/htmplottest.dir/rule: cmake_check_build_system
+CMakeFiles/phtest.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/johker/workspace/plot_htm/examples/build/CMakeFiles 2
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/htmplottest.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/phtest.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/johker/workspace/plot_htm/examples/build/CMakeFiles 0
-.PHONY : CMakeFiles/htmplottest.dir/rule
+.PHONY : CMakeFiles/phtest.dir/rule
 
 # Convenience name for target.
-htmplottest: CMakeFiles/htmplottest.dir/rule
+phtest: CMakeFiles/phtest.dir/rule
 
-.PHONY : htmplottest
-
-# clean rule for target.
-CMakeFiles/htmplottest.dir/clean:
-	$(MAKE) -f CMakeFiles/htmplottest.dir/build.make CMakeFiles/htmplottest.dir/clean
-.PHONY : CMakeFiles/htmplottest.dir/clean
+.PHONY : phtest
 
 # clean rule for target.
-clean: CMakeFiles/htmplottest.dir/clean
-
-.PHONY : clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/ncursestest.dir
-
-# All Build rule for target.
-CMakeFiles/ncursestest.dir/all:
-	$(MAKE) -f CMakeFiles/ncursestest.dir/build.make CMakeFiles/ncursestest.dir/depend
-	$(MAKE) -f CMakeFiles/ncursestest.dir/build.make CMakeFiles/ncursestest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/johker/workspace/plot_htm/examples/build/CMakeFiles --progress-num=3,4 "Built target ncursestest"
-.PHONY : CMakeFiles/ncursestest.dir/all
-
-# Include target in all.
-all: CMakeFiles/ncursestest.dir/all
-
-.PHONY : all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/ncursestest.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/johker/workspace/plot_htm/examples/build/CMakeFiles 2
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/ncursestest.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/johker/workspace/plot_htm/examples/build/CMakeFiles 0
-.PHONY : CMakeFiles/ncursestest.dir/rule
-
-# Convenience name for target.
-ncursestest: CMakeFiles/ncursestest.dir/rule
-
-.PHONY : ncursestest
+CMakeFiles/phtest.dir/clean:
+	$(MAKE) -f CMakeFiles/phtest.dir/build.make CMakeFiles/phtest.dir/clean
+.PHONY : CMakeFiles/phtest.dir/clean
 
 # clean rule for target.
-CMakeFiles/ncursestest.dir/clean:
-	$(MAKE) -f CMakeFiles/ncursestest.dir/build.make CMakeFiles/ncursestest.dir/clean
-.PHONY : CMakeFiles/ncursestest.dir/clean
-
-# clean rule for target.
-clean: CMakeFiles/ncursestest.dir/clean
+clean: CMakeFiles/phtest.dir/clean
 
 .PHONY : clean
 

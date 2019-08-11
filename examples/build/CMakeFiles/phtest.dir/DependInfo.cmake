@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/johker/workspace/plot_htm/examples/htmplottest.cpp" "/home/johker/workspace/plot_htm/examples/build/CMakeFiles/htmplottest.dir/htmplottest.cpp.o"
+  "/home/johker/workspace/plot_htm/examples/phtest.cpp" "/home/johker/workspace/plot_htm/examples/build/CMakeFiles/phtest.dir/phtest.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -12,6 +12,7 @@ set(CMAKE_CXX_COMPILER_ID "GNU")
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/home/johker/miniconda3/include"
   "/home/johker/workspace/tiny_htm"
+  "/home/johker/workspace/plot_htm"
   )
 
 # Targets to which this target links.

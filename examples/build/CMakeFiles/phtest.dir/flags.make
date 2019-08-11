@@ -6,5 +6,5 @@ CXX_FLAGS =
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/johker/miniconda3/include -I/home/johker/workspace/tiny_htm 
+CXX_INCLUDES = -I/home/johker/miniconda3/include -I/home/johker/workspace/tiny_htm -I/home/johker/workspace/plot_htm 
 

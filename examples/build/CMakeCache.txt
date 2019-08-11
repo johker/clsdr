@@ -142,7 +142,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=ncursestest
+CMAKE_PROJECT_NAME:STATIC=phtest
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=/usr/bin/ranlib
@@ -216,16 +216,16 @@ CURSES_INCLUDE_PATH:PATH=/home/johker/miniconda3/include
 CURSES_NCURSES_LIBRARY:FILEPATH=/home/johker/miniconda3/lib/libncurses.so
 
 //Value Computed by CMake
-htmplottest_BINARY_DIR:STATIC=/home/johker/workspace/plot_htm/examples/build
+phtest_BINARY_DIR:STATIC=/home/johker/workspace/plot_htm/examples/build
 
 //Value Computed by CMake
-htmplottest_SOURCE_DIR:STATIC=/home/johker/workspace/plot_htm/examples
+phtest_SOURCE_DIR:STATIC=/home/johker/workspace/plot_htm/examples
 
 //Value Computed by CMake
-ncursestest_BINARY_DIR:STATIC=/home/johker/workspace/plot_htm/examples/build
+ttest_BINARY_DIR:STATIC=/home/johker/workspace/plot_htm/examples/build
 
 //Value Computed by CMake
-ncursestest_SOURCE_DIR:STATIC=/home/johker/workspace/plot_htm/examples
+ttest_SOURCE_DIR:STATIC=/home/johker/workspace/plot_htm/examples
 
 //The directory containing a CMake configuration file for xtensor.
 xtensor_DIR:PATH=/home/johker/miniconda3/lib/cmake/xtensor

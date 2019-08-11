@@ -1,4 +1,3 @@
 /home/johker/workspace/plot_htm/examples/build/CMakeFiles/rebuild_cache.dir
+/home/johker/workspace/plot_htm/examples/build/CMakeFiles/phtest.dir
 /home/johker/workspace/plot_htm/examples/build/CMakeFiles/edit_cache.dir
-/home/johker/workspace/plot_htm/examples/build/CMakeFiles/htmplottest.dir
-/home/johker/workspace/plot_htm/examples/build/CMakeFiles/ncursestest.dir
