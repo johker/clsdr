@@ -19,9 +19,8 @@ int main(){
         int avrows,avcols;
         int xoff,yoff; 
         int maxrows,maxcols;
-	std::vector<ph::HTMParam> status;
+	std::map<ph::HTMParamKey, ph::HTMParam> status;
 	
-
         setlocale(LC_ALL, "");
         initscr();
 	use_default_colors();
@@ -41,7 +40,7 @@ int main(){
 //        mvprintw(avrows-4,0,"maxcols= %d maxrows = %d \n", maxcols,maxrows); 
 
 	ph::HTMParam idxParam = {"IDX","%.0f",0};
-	status.push_back(idxParam); 
+	status.insert({ph::HTMParamKey::IDX, idxParam}); 
 	
 	size_t numcat = 2;
 	size_t enclen = 4;
@@ -50,8 +49,11 @@ int main(){
 	th::CategoryEncoder encoder(numcat, enclen);
 	for(int i=0; i<phorizon; i++) {
 		auto sdr = encoder.encode(i%numcat);
-		status[0].value +=1;
-		ph::printStatus(status,avrows,avcols);
+		auto pos = status.find(ph::HTMParamKey::IDX);
+		if(pos != status.end()) {
+			pos->second.value +=1;
+			ph::printStatus(status,avrows,avcols);
+		}
 		ph::printSDR(sdr,maxrows,maxcols,xoff,yoff);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));	
 		refresh();

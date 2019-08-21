@@ -26,12 +26,15 @@ struct HTMParam {
 	float value;
 };
 
-inline void printStatus(const std::vector<HTMParam> & status, const int avrows, const int avcols) {
+inline void printStatus(const std::map<HTMParamKey, HTMParam> & status, const int avrows, const int avcols) {
 	attron(COLOR_PAIR(1));
 	std::stringstream ss; 
-	ss << status[0].name << " = " << status[0].precision; 
-	const std::string& tmp = ss.str();   
-	mvprintw(avrows-2,0,tmp.c_str(), status[0].value);
+	auto pos = status.find(HTMParamKey::IDX);
+	if(pos != status.end()) {
+		ss << pos->second.name << " = " << pos->second.precision; 
+		const std::string& tmp = ss.str();   
+		mvprintw(avrows-2,0,tmp.c_str(), pos->second.value);
+	}
 	attroff(COLOR_PAIR(1));
 }	
 
