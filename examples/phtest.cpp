@@ -21,6 +21,7 @@ int main(){
         int maxrows,maxcols;
 	std::map<ph::HTMParamKey, ph::HTMParam> status;
 	
+	// Initialize View	
         setlocale(LC_ALL, "");
         initscr();
 	use_default_colors();
@@ -34,25 +35,23 @@ int main(){
         xoff = (avcols - maxcols) >> 1; 
 
 	init_pair(1, COLOR_BLACK, COLOR_WHITE);
-	
-//        mvprintw(avrows-2,0,"xoff = %d yoff = %d \n", xoff, yoff); 
-//        mvprintw(avrows-3,0,"avcols= %d avrows = %d \n", avcols,avrows); 
-//        mvprintw(avrows-4,0,"maxcols= %d maxrows = %d \n", maxcols,maxrows); 
-
 	ph::HTMParam idxParam = {"IDX","%.0f",0};
 	status.insert({ph::HTMParamKey::IDX, idxParam}); 
-	
+
+	// HTM Test 	
 	size_t numcat = 2;
 	size_t enclen = 4;
 	size_t phorizon = 10; 
 
 	th::CategoryEncoder encoder(numcat, enclen);
+	th::TemporalMemory tm({numcat*4}, 6);
+	ph::printControlBar(avrows,avcols);
 	for(int i=0; i<phorizon; i++) {
 		auto sdr = encoder.encode(i%numcat);
 		auto pos = status.find(ph::HTMParamKey::IDX);
 		if(pos != status.end()) {
 			pos->second.value +=1;
-			ph::printStatus(status,avrows,avcols);
+			ph::printStatusBar(status,avrows,avcols);
 		}
 		ph::printSDR(sdr,maxrows,maxcols,xoff,yoff);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));	

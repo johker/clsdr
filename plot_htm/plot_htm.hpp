@@ -25,15 +25,22 @@ struct HTMParam {
 	std::string precision;
 	float value;
 };
+inline void printControlBar(const int avrows, const int avcols) 
+{
+	attron(COLOR_PAIR(1)); 
+	std::string s = "-- CONTROL --";
+	mvprintw(0,0,s.c_str());
+	attroff(COLOR_PAIR(1));
+}
 
-inline void printStatus(const std::map<HTMParamKey, HTMParam> & status, const int avrows, const int avcols) {
+inline void printStatusBar(const std::map<HTMParamKey, HTMParam> & status, const int avrows, const int avcols) {
 	attron(COLOR_PAIR(1));
 	std::stringstream ss; 
 	auto pos = status.find(HTMParamKey::IDX);
 	if(pos != status.end()) {
 		ss << pos->second.name << " = " << pos->second.precision; 
 		const std::string& tmp = ss.str();   
-		mvprintw(avrows-2,0,tmp.c_str(), pos->second.value);
+		mvprintw(avrows-1,0,tmp.c_str(), pos->second.value);
 	}
 	attroff(COLOR_PAIR(1));
 }	
