@@ -123,6 +123,19 @@ phtest/fast:
 	$(MAKE) -f CMakeFiles/phtest.dir/build.make CMakeFiles/phtest.dir/build
 .PHONY : phtest/fast
 
+#=============================================================================
+# Target rules for targets named wintest
+
+# Build rule for target.
+wintest: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 wintest
+.PHONY : wintest
+
+# fast build rule for target.
+wintest/fast:
+	$(MAKE) -f CMakeFiles/wintest.dir/build.make CMakeFiles/wintest.dir/build
+.PHONY : wintest/fast
+
 phtest.o: phtest.cpp.o
 
 .PHONY : phtest.o
@@ -150,6 +163,33 @@ phtest.cpp.s:
 	$(MAKE) -f CMakeFiles/phtest.dir/build.make CMakeFiles/phtest.dir/phtest.cpp.s
 .PHONY : phtest.cpp.s
 
+wintest.o: wintest.cpp.o
+
+.PHONY : wintest.o
+
+# target to build an object file
+wintest.cpp.o:
+	$(MAKE) -f CMakeFiles/wintest.dir/build.make CMakeFiles/wintest.dir/wintest.cpp.o
+.PHONY : wintest.cpp.o
+
+wintest.i: wintest.cpp.i
+
+.PHONY : wintest.i
+
+# target to preprocess a source file
+wintest.cpp.i:
+	$(MAKE) -f CMakeFiles/wintest.dir/build.make CMakeFiles/wintest.dir/wintest.cpp.i
+.PHONY : wintest.cpp.i
+
+wintest.s: wintest.cpp.s
+
+.PHONY : wintest.s
+
+# target to generate assembly for a file
+wintest.cpp.s:
+	$(MAKE) -f CMakeFiles/wintest.dir/build.make CMakeFiles/wintest.dir/wintest.cpp.s
+.PHONY : wintest.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -157,11 +197,15 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
-	@echo "... phtest"
 	@echo "... edit_cache"
+	@echo "... phtest"
+	@echo "... wintest"
 	@echo "... phtest.o"
 	@echo "... phtest.i"
 	@echo "... phtest.s"
+	@echo "... wintest.o"
+	@echo "... wintest.i"
+	@echo "... wintest.s"
 .PHONY : help
 
 

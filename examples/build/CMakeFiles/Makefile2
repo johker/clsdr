@@ -102,6 +102,43 @@ clean: CMakeFiles/phtest.dir/clean
 .PHONY : clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/wintest.dir
+
+# All Build rule for target.
+CMakeFiles/wintest.dir/all:
+	$(MAKE) -f CMakeFiles/wintest.dir/build.make CMakeFiles/wintest.dir/depend
+	$(MAKE) -f CMakeFiles/wintest.dir/build.make CMakeFiles/wintest.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/johker/workspace/plot_htm/examples/build/CMakeFiles --progress-num=3,4 "Built target wintest"
+.PHONY : CMakeFiles/wintest.dir/all
+
+# Include target in all.
+all: CMakeFiles/wintest.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/wintest.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/johker/workspace/plot_htm/examples/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/wintest.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/johker/workspace/plot_htm/examples/build/CMakeFiles 0
+.PHONY : CMakeFiles/wintest.dir/rule
+
+# Convenience name for target.
+wintest: CMakeFiles/wintest.dir/rule
+
+.PHONY : wintest
+
+# clean rule for target.
+CMakeFiles/wintest.dir/clean:
+	$(MAKE) -f CMakeFiles/wintest.dir/build.make CMakeFiles/wintest.dir/clean
+.PHONY : CMakeFiles/wintest.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/wintest.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
 # Special targets to cleanup operation of make.
 
 # Special rule to run CMake to check the build system integrity.

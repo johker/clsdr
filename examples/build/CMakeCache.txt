@@ -142,7 +142,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=phtest
+CMAKE_PROJECT_NAME:STATIC=wintest
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=/usr/bin/ranlib
@@ -226,6 +226,12 @@ ttest_BINARY_DIR:STATIC=/home/johker/workspace/plot_htm/examples/build
 
 //Value Computed by CMake
 ttest_SOURCE_DIR:STATIC=/home/johker/workspace/plot_htm/examples
+
+//Value Computed by CMake
+wintest_BINARY_DIR:STATIC=/home/johker/workspace/plot_htm/examples/build
+
+//Value Computed by CMake
+wintest_SOURCE_DIR:STATIC=/home/johker/workspace/plot_htm/examples
 
 //The directory containing a CMake configuration file for xtensor.
 xtensor_DIR:PATH=/home/johker/miniconda3/lib/cmake/xtensor

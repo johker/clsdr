@@ -13,4 +13,7 @@ find_package(Curses REQUIRED)
 add_executable(phtest phtest.cpp)
 target_link_libraries(phtest ${CURSES_LIBRARY})
 
-
+project(wintest)
+find_package(Curses REQUIRED)
+add_executable(wintest wintest.cpp)
+target_link_libraries(wintest ${CURSES_LIBRARY})

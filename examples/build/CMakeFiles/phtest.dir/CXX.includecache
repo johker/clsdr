@@ -1035,6 +1035,12 @@ ncursesw/ncurses.h
 -
 locale.h
 -
+string.h
+-
+ctype.h
+-
+stdlib.h
+-
 
 /home/johker/workspace/plot_htm/plot_htm/plot_htm.hpp
 string
