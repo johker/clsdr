@@ -29,14 +29,14 @@ struct HTMParam {
 inline void printControlBar(WINDOW *ctrlwin, const std::vector<std::string> & commands, const int cmdidx, const int avrows, const int avcols) 
 {
 	int x,y,i;
-	x = 0; 
-	y = 0;
+	x = 3; 
+	y = 1;
 	box(ctrlwin,0,0); 
 	for(i=0;i<commands.size();i++) {
 		if(cmdidx == i) {
-			wattron(ctrlwin,A_REVERSE); 
+			attron(COLOR_PAIR(1)); 
 			mvprintw(y,x,"%s",commands.at(i).c_str());	
-			wattroff(ctrlwin,A_REVERSE);
+			attroff(COLOR_PAIR(1));
 		} else {
 			mvprintw(y,x,"%s",commands.at(i).c_str());
 		}
@@ -46,16 +46,19 @@ inline void printControlBar(WINDOW *ctrlwin, const std::vector<std::string> & co
 }
 
 inline void printStatusBar(WINDOW *statwin, const std::map<HTMParamKey, HTMParam> & params, const int avrows, const int avcols) {
+	int x,y,i; 
+	x = 3;
+	y = avrows-2;	
+	box(statwin,0,0); 
 	attron(COLOR_PAIR(1));
 	std::stringstream ss; 
 	auto pos = params.find(HTMParamKey::IDX);
 	if(pos != params.end()) {
 		ss << pos->second.name << " = " << pos->second.precision; 
 		const std::string& tmp = ss.str();   
-		mvprintw(avrows-1,0,tmp.c_str(), pos->second.value);
+		mvprintw(y,x,tmp.c_str(), pos->second.value);
 	}
 	attroff(COLOR_PAIR(1));
-	wrefresh(statwin);
 	wrefresh(statwin);
 }	
 
@@ -76,6 +79,7 @@ inline void printSDR(const xt::xarray<bool> & sdr, const int maxrows, const int 
                         mvaddch(yi,xi-1,' ');
                 }
 	}	
+	refresh();
 }
 
 
