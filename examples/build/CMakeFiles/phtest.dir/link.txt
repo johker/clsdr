@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/phtest.dir/phtest.cpp.o  -o phtest -lpanel -lcurses 
