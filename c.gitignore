@@ -1,5 +1,6 @@
 #Build Folders
-examples/build/
+build/
+:w
 
 # Prerequisites
 *.d
