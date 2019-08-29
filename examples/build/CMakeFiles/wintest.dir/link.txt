@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/wintest.dir/wintest.cpp.o  -o wintest -lcurses 
