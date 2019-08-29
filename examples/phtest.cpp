@@ -5,6 +5,7 @@
 #include <xtensor/xarray.hpp>
 #include <chrono>
 #include <thread>
+#include <panel.h>
 #include <ncursesw/ncurses.h>
 #include <locale.h>
 #include <string.h>
@@ -33,10 +34,9 @@ int main(){
         int avrows,avcols;
         int xoff,yoff; 
         int maxrows,maxcols;
-	WINDOW *controlwin; 
-	WINDOW *statuswin;
+	WINDOW *controlwin, *statuswin, *contentwin;
+	PANEL *controlpanel, *statuspanel, *contentpanel;
 	int cmdidx = 0;		// command index
-	int c;			// keyboard input 
 
 	std::map<ph::HTMParamKey, ph::HTMParam> params;
 	std::vector<std::string> commands;
@@ -56,14 +56,26 @@ int main(){
 	leaveok(stdscr,1);		// Dont care where cursor is left
 	intrflush(stdscr,0);		// Avoid potential graphical issues
 
-
-
 	getmaxyx(stdscr,avrows,avcols);	// Get screen dimensions
 
 	// Initialize windows
 	controlwin = newwin(3,avcols-2,0,1);
 	statuswin = newwin(3,avcols-2,avrows-3,1);
+	contentwin = newwin(avrows-6,avcols-2,3,1);
 
+	box(controlwin,0,0);
+	box(statuswin,0,0);
+	box(contentwin,0,0);
+
+	contentpanel = new_panel(contentwin);	/* Push 0, order: stdscr-0 */
+	statuspanel = new_panel(statuswin); 	/* Push 1, order: stdscr-0-1 */
+	controlpanel = new_panel(controlwin);	/* Push 2, order: stdscr-0-1-2 */
+
+	/* Update the stacking order. 2nd panel will be on top */
+	//update_panels();
+	
+	//doupdate();
+	
 	// Offset depending on HTM topology
         maxcols = avcols < NCOLS << 1 ? avcols : NCOLS << 1;
         maxrows = (SDR_SIZE << 1) / maxcols; 

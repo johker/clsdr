@@ -52,6 +52,10 @@ ncursesw/unctrl.h
 ncursesw/curses.h
 -
 
+/home/johker/miniconda3/include/panel.h
+ncursesw/curses.h
+-
+
 /home/johker/miniconda3/include/xtensor/xaccessible.hpp
 xexception.hpp
 /home/johker/miniconda3/include/xtensor/xexception.hpp
@@ -1030,6 +1034,8 @@ xtensor/xarray.hpp
 chrono
 -
 thread
+-
+panel.h
 -
 ncursesw/ncurses.h
 -

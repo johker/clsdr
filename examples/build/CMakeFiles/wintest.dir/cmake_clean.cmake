@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/wintest.dir/wintest.cpp.o"
-  "wintest.pdb"
   "wintest"
+  "wintest.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

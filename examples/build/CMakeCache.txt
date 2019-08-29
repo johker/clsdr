@@ -215,17 +215,14 @@ CURSES_INCLUDE_PATH:PATH=/home/johker/miniconda3/include
 //Path to a library.
 CURSES_NCURSES_LIBRARY:FILEPATH=/home/johker/miniconda3/lib/libncurses.so
 
+//Path to a library.
+panel:FILEPATH=panel-NOTFOUND
+
 //Value Computed by CMake
 phtest_BINARY_DIR:STATIC=/home/johker/workspace/plot_htm/examples/build
 
 //Value Computed by CMake
 phtest_SOURCE_DIR:STATIC=/home/johker/workspace/plot_htm/examples
-
-//Value Computed by CMake
-ttest_BINARY_DIR:STATIC=/home/johker/workspace/plot_htm/examples/build
-
-//Value Computed by CMake
-ttest_SOURCE_DIR:STATIC=/home/johker/workspace/plot_htm/examples
 
 //Value Computed by CMake
 wintest_BINARY_DIR:STATIC=/home/johker/workspace/plot_htm/examples/build
@@ -251,9 +248,9 @@ CMAKE_CACHEFILE_DIR:INTERNAL=/home/johker/workspace/plot_htm/examples/build
 //Major version of cmake used to create the current loaded cache
 CMAKE_CACHE_MAJOR_VERSION:INTERNAL=3
 //Minor version of cmake used to create the current loaded cache
-CMAKE_CACHE_MINOR_VERSION:INTERNAL=14
+CMAKE_CACHE_MINOR_VERSION:INTERNAL=15
 //Patch version of cmake used to create the current loaded cache
-CMAKE_CACHE_PATCH_VERSION:INTERNAL=5
+CMAKE_CACHE_PATCH_VERSION:INTERNAL=2
 //ADVANCED property for variable: CMAKE_COLOR_MAKEFILE
 CMAKE_COLOR_MAKEFILE-ADVANCED:INTERNAL=1
 //Path to CMake executable.
@@ -352,7 +349,7 @@ CMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_RANLIB
 CMAKE_RANLIB-ADVANCED:INTERNAL=1
 //Path to CMake installation.
-CMAKE_ROOT:INTERNAL=/usr/share/cmake-3.14
+CMAKE_ROOT:INTERNAL=/usr/share/cmake-3.15
 //ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS
 CMAKE_SHARED_LINKER_FLAGS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_DEBUG
