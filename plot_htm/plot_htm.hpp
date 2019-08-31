@@ -7,6 +7,8 @@
 #include <ncursesw/ncurses.h>
 #include <locale.h>
 
+#define NCOLS 16
+#define SDR_SIZE 256
 
 namespace ph {
 
@@ -63,9 +65,18 @@ inline void printStatusBar(WINDOW *statwin, const std::map<HTMParamKey, HTMParam
 }	
 
 
-inline void printSDR(WINDOW *contwin, const xt::xarray<bool> & sdr, const int maxrows, const int maxcols, const int yoff, const int xoff){
+inline void printSDR(WINDOW *contwin, const xt::xarray<bool> & sdr, const int avrows, const int avcols){
 	int i; 
 	int xi,yi;
+	int xoff,yoff;
+	int maxrows, maxcols;
+
+	// Offset depending on HTM topology
+	maxcols = avcols < NCOLS << 1 ? avcols : NCOLS << 1;    	// We need NCOLS << 1 for whitespaces
+	maxrows = (SDR_SIZE << 1) / maxcols; 
+	yoff = (avrows - maxrows) >> 1;
+	xoff = (avcols - maxcols) >> 1; 
+
 	for(i = 0; i < sdr.size(); i++) {
                 xi = (i << 1) % maxcols + xoff;
                 yi = (i << 1) / maxcols + yoff;
