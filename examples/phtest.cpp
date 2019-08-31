@@ -23,13 +23,9 @@ void initNcurses();
 int main(){
 
 	int i = 0;						// main loop index	
-	int sdrsize;
 	int avrows,avcols;					// Available rows / cols
 	int avrowstmo = 0, avcolstmo = 0;			// Available rows / cols in t minus one
-	int xoff,yoff;						// Offset 
-	int maxrows,maxcols;
 	WINDOW *win[4];						// Windows: std, control, status, content
-	WINDOW *controlwin, *statuswin, *contentwin;
 	int cmdidx = 0;						// command index
 
 	std::map<ph::HTMParamKey, ph::HTMParam> params;
