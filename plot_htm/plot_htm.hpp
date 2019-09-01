@@ -27,72 +27,128 @@ struct HTMParam {
 	float value;
 };
 
+struct ControlBar {
+	
+	ControlBar()  {
+		cmdidx = 0;
+		cmds.push_back("IPL");			// Input Layer
+		cmds.push_back("SPL");			// Spacial Pooling Layer
+		cmds.push_back("MC");			// Mini Column
+	}
 
-inline void printControlBar(WINDOW *ctrlwin, const std::vector<std::string> & commands, const int cmdidx) 
-{
-	int x,y,i;
-	x = 3; 
-	y = 1;
-	box(ctrlwin,0,0); 
-	for(i=0;i<commands.size();i++) {
-		if(cmdidx == i) {
-			wattron(ctrlwin,COLOR_PAIR(1)); 
-			mvwprintw(ctrlwin,y,x,"%s",commands.at(i).c_str());	
-			wattroff(ctrlwin,COLOR_PAIR(1));
-		} else {
-			mvwprintw(ctrlwin,y,x,"%s",commands.at(i).c_str());
+	void selLeft(WINDOW *ctrlwin) {
+		cmdidx = (cmdidx == 0) ? cmds.size()-1 : cmdidx-1;
+		print(ctrlwin);
+	}
+
+	void selRight(WINDOW *ctrlwin) {
+		cmdidx = (cmdidx == cmds.size()-1) ? 0 : cmdidx+1;
+		print(ctrlwin);
+	}
+
+	void print(WINDOW *ctrlwin) 
+	{
+		int x,y,i;
+		x = 3; 
+		y = 1;
+		box(ctrlwin,0,0); 
+		for(i=0;i<cmds.size();i++) {
+			if(cmdidx == i) {
+				wattron(ctrlwin,COLOR_PAIR(1)); 
+				mvwprintw(ctrlwin,y,x,"%s",cmds.at(i).c_str());	
+				wattroff(ctrlwin,COLOR_PAIR(1));
+			} else {
+				mvwprintw(ctrlwin,y,x,"%s",cmds.at(i).c_str());
+			}
+			x += 5;	
 		}
-		x += 5;	
+		wrefresh(ctrlwin);
 	}
-	wrefresh(ctrlwin);
-}
 
-inline void printStatusBar(WINDOW *statwin, const std::map<HTMParamKey, HTMParam> & params) {
-	int x,y,i; 
-	x = 3;
-	y = 1;	
-	box(statwin,0,0); 
-	wattron(statwin,COLOR_PAIR(1));
-	std::stringstream ss; 
-	auto pos = params.find(HTMParamKey::IDX);
-	if(pos != params.end()) {
-		ss << pos->second.name << " = " << pos->second.precision; 
-		const std::string& tmp = ss.str();   
-		mvwprintw(statwin,y,x,tmp.c_str(), pos->second.value);
+protected:
+	std::vector<std::string> cmds;
+	int cmdidx;
+
+};
+
+struct StatusBar {
+
+	StatusBar() {
+		ph::HTMParam idxParam = {"IDX","%.0f",0};
+		params.insert({ph::HTMParamKey::IDX, idxParam}); 
 	}
-	wattroff(statwin,COLOR_PAIR(1));
-	wrefresh(statwin);
-}	
 
+	int getStatus(HTMParamKey &key, float value) {
+		auto pos = params.find(key);
+		if(pos != params.end()) {
+			value =	pos->second.value;
+			return 0;
+		} else return 1;
+	}
 
-inline void printSDR(WINDOW *contwin, const xt::xarray<bool> & sdr, const int avrows, const int avcols){
-	int i; 
-	int xi,yi;
-	int xoff,yoff;
-	int maxrows, maxcols;
+	int setStatus(WINDOW *statwin, HTMParamKey key, float value) {
+		auto pos = params.find(key);
+		if(pos != params.end()) {
+			pos->second.value = value;
+			print(statwin);
+			return 0;
+		} else return 1;
+	}
 
-	// Offset depending on HTM topology
-	maxcols = avcols < NCOLS << 1 ? avcols : NCOLS << 1;    	// We need NCOLS << 1 for whitespaces
-	maxrows = (SDR_SIZE << 1) / maxcols; 
-	yoff = (avrows - maxrows) >> 1;
-	xoff = (avcols - maxcols) >> 1; 
-
-	for(i = 0; i < sdr.size(); i++) {
-                xi = (i << 1) % maxcols + xoff;
-                yi = (i << 1) / maxcols + yoff;
-
-                if(sdr[i]) {
-                        mvwprintw(contwin,yi,xi,ACTIVE.c_str());
-                        mvwaddch(contwin,yi,xi-1,' ');
-                }
-                else {
-                        mvwprintw(contwin,yi,xi,INACTIVE.c_str());
-                        mvwaddch(contwin,yi,xi-1,' ');
-                }
+	void print(WINDOW *statwin)  {
+		int x,y,i; 
+		x = 3;
+		y = 1;	
+		box(statwin,0,0); 
+		std::stringstream ss; 
+		for(auto const& p : params) {
+			ss << p.second.name << " = " << p.second.precision; 
+			const std::string& tmp = ss.str();   
+			mvwprintw(statwin,y,x,tmp.c_str(), p.second.value);
+		}
+		wrefresh(statwin);
 	}	
-	wrefresh(contwin);
-}
 
+protected: 
+	std::map<HTMParamKey, HTMParam> params;
 
+};
+
+struct ContentPane {
+
+	ContentPane() {
+
+	}
+
+	void print(WINDOW *contwin, const xt::xarray<bool> & sdr, const int avrows, const int avcols){
+		int i; 
+		int xi,yi;
+		int xoff,yoff;
+		int maxrows, maxcols;
+
+		// Offset depending on HTM topology
+		// We need NCOLS << 1 for whitespaces
+		maxcols = avcols < NCOLS << 1 ? avcols : NCOLS << 1;   	
+		maxrows = (SDR_SIZE << 1) / maxcols; 
+		yoff = (avrows - maxrows) >> 1;
+		xoff = (avcols - maxcols) >> 1; 
+
+		for(i = 0; i < sdr.size(); i++) {
+			xi = (i << 1) % maxcols + xoff;
+			yi = (i << 1) / maxcols + yoff;
+
+			if(sdr[i]) {
+				mvwprintw(contwin,yi,xi,ACTIVE.c_str());
+				mvwaddch(contwin,yi,xi-1,' ');
+			}
+			else {
+				mvwprintw(contwin,yi,xi,INACTIVE.c_str());
+				mvwaddch(contwin,yi,xi-1,' ');
+			}
+		}	
+		wrefresh(contwin);
+	}
+
+};
 
 }

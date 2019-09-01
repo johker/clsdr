@@ -28,9 +28,6 @@ int main(){
 	WINDOW *win[4];						// Windows: std, control, status, content
 	int cmdidx = 0;						// command index
 
-	std::map<ph::HTMParamKey, ph::HTMParam> params;
-	std::vector<std::string> commands;
-
 	// Initialize View	
 	setlocale(LC_ALL, "");					// Unicode support
 	initscr();						// Init screen		
@@ -49,6 +46,11 @@ int main(){
 	// Get initial screen dimensions
 	getmaxyx(stdscr,avrows,avcols);	
 
+	// Initialize screen objects
+	ph::ControlBar ctrlBr; 
+	ph::StatusBar stBr;
+	ph::ContentPane cntPn;
+
 	// Initialize windows
 	win[0] = stdscr;
 	win[1] = newwin(3,avcols-2,0,1);			// Control window
@@ -63,15 +65,6 @@ int main(){
 	// Initialize colors
 	init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
-	// Initialize Parameters
-	ph::HTMParam idxParam = {"IDX","%.0f",0};
-	params.insert({ph::HTMParamKey::IDX, idxParam}); 
-
-	// Initialize Commands
-	commands.push_back("IPL");				// Input Layer
-	commands.push_back("SPL");				// Spacial Pooling Layer
-	commands.push_back("MC");				// Mini Column
-
 	// HTM Test	
 	size_t numcat = 2;
 	size_t enclen = 4;
@@ -79,64 +72,41 @@ int main(){
 
 	th::CategoryEncoder encoder(numcat, enclen);
 	th::TemporalMemory tm({numcat*4}, 6);
-
 				
 	while(1) {
-	
-		// Get input non-blocking
-		while(1) 
-		{
-		int key = getch();
-		if(key == ERR) 
-		{
-			break;
-		} else {
-
-			switch(key)
-				{
+		// User Input
+		while(1) { 
+			int key = getch();
+			if(key == ERR) break;
+		 	else switch(key) {
 				case KEY_LEFT:
-					if (cmdidx == 0) {
-						cmdidx = commands.size()-1;
-					} else {
-						cmdidx -= 1;
-					}
-					ph::printControlBar(win[1],commands,cmdidx); 
+					ctrlBr.selLeft(win[1]);	
 					break;
 				case KEY_RIGHT:
-					if (cmdidx == commands.size()-1) {
-						cmdidx = 0;
-					} else {
-						cmdidx += 1;
-					}
-					ph::printControlBar(win[1],commands,cmdidx); 
+					ctrlBr.selRight(win[1]);
 					break;
 				default:
-					//mvaddch(2,10,key);
 					break;
 				} 
-			}
 		}
 		// HTM Update 
 		auto sdr = encoder.encode(i%numcat);
-		auto pos = params.find(ph::HTMParamKey::IDX);
-		if(pos != params.end()) {
-			pos->second.value +=1;
-		}		
+		stBr.setStatus(win[2],ph::HTMParamKey::IDX,(float) i);
+
 		// Update screen dimension
 		updateScreen(win, avrows,avcols,avrowstmo,avcolstmo);
 
-
 		// Update status and control bar
-		ph::printStatusBar(win[2],params);
 		if(i==1) {
-			ph::printControlBar(win[1],commands,cmdidx);	
+			ctrlBr.print(win[1]);	
 		}
-		ph::printSDR(win[3],sdr,avrows-6,avcols-2);
+		
+		cntPn.print(win[3],sdr,avrows-6,avcols-2);
 
 		i += 1;
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));	
 
-	} // End of while
+	} // End of main loop 
 
 	endwin();
 	clrtoeol();
@@ -151,6 +121,16 @@ void updateScreen(WINDOW **win, int &avrows, int &avcols, int &avrowstmo, int &a
 	getmaxyx(win[0],avrows,avcols);	// Get screen dimensions
 	if(avrows != avrowstmo || avcols != avcolstmo) {
 		// Redraw everything
-		// wresize(, lines, colums)
+		wresize(win[1],3,avcols-2);
+		wresize(win[2],3,avcols-2);
+		wresize(win[3],avrows-6,avcols-2);
+		mvwin(win[2],avrows-3,1); 
+		wclear(win[0]);
+		for(int wi = 1; wi < 4; wi++) {
+			wclear(win[wi]);
+			box(win[wi],0,0);
+			wrefresh(win[wi]);
+		}
+		// Print everything
 	}
 }
