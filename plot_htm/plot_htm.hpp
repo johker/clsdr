@@ -16,16 +16,6 @@ namespace ph {
 const std::string ACTIVE{"\u25A0"};
 const std::string INACTIVE{"\u25A1"};
 
-enum HTMParamKey {
-	IDX,	// Index 
-	ADY	// Activation Density
-};
-
-struct HTMParam {
-	std::string name;
-	std::string precision;
-	float value;
-};
 
 struct ControlBar {
 	
@@ -74,43 +64,16 @@ protected:
 struct StatusBar {
 
 	StatusBar() {
-		ph::HTMParam idxParam = {"IDX","%.0f",0};
-		params.insert({ph::HTMParamKey::IDX, idxParam}); 
 	}
 
-	int getStatus(HTMParamKey &key, float value) {
-		auto pos = params.find(key);
-		if(pos != params.end()) {
-			value =	pos->second.value;
-			return 0;
-		} else return 1;
-	}
-
-	int setStatus(WINDOW *statwin, HTMParamKey key, float value) {
-		auto pos = params.find(key);
-		if(pos != params.end()) {
-			pos->second.value = value;
-			print(statwin);
-			return 0;
-		} else return 1;
-	}
-
-	void print(WINDOW *statwin)  {
-		int x,y,i; 
+	void print(WINDOW *statwin, const std::string& msg)  {
+		int x,y; 
 		x = 3;
 		y = 1;	
 		box(statwin,0,0); 
-		std::stringstream ss; 
-		for(auto const& p : params) {
-			ss << p.second.name << " = " << p.second.precision; 
-			const std::string& tmp = ss.str();   
-			mvwprintw(statwin,y,x,tmp.c_str(), p.second.value);
-		}
+		mvwprintw(statwin,y,x,msg.c_str());
 		wrefresh(statwin);
 	}	
-
-protected: 
-	std::map<HTMParamKey, HTMParam> params;
 
 };
 

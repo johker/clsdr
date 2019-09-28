@@ -17,7 +17,7 @@
 
 const std::string ACTIVE{"\u25A0"};
 
-void updateScreen(WINDOW **win, int &avrows, int &avcols, int &avrowstmo, int &avcolstmo); 
+int updateScreen(WINDOW **win, int &avrows, int &avcols, int &avrowstmo, int &avcolstmo); 
 void initNcurses();
 
 int main(){
@@ -91,16 +91,13 @@ int main(){
 		}
 		// HTM Update 
 		auto sdr = encoder.encode(i%numcat);
-		stBr.setStatus(win[2],ph::HTMParamKey::IDX,(float) i);
 
 		// Update screen dimension
-		updateScreen(win, avrows,avcols,avrowstmo,avcolstmo);
+		auto updt = updateScreen(win, avrows,avcols,avrowstmo,avcolstmo);
 
 		// Update status and control bar
-		if(i==1) {
-			ctrlBr.print(win[1]);	
-		}
-		
+		ctrlBr.print(win[1]);	
+		stBr.print(win[2], "i = " + std::to_string(i));		
 		cntPn.print(win[3],sdr,avrows-6,avcols-2);
 
 		i += 1;
@@ -108,7 +105,6 @@ int main(){
 
 	} // End of main loop 
 
-	endwin();
 	clrtoeol();
 	refresh();
 	endwin();
@@ -116,11 +112,10 @@ int main(){
 }
 
 
-void updateScreen(WINDOW **win, int &avrows, int &avcols, int &avrowstmo, int &avcolstmo) {
+int updateScreen(WINDOW **win, int &avrows, int &avcols, int &avrowstmo, int &avcolstmo) {
 	
 	getmaxyx(win[0],avrows,avcols);	// Get screen dimensions
 	if(avrows != avrowstmo || avcols != avcolstmo) {
-		// Redraw everything
 		wresize(win[1],3,avcols-2);
 		wresize(win[2],3,avcols-2);
 		wresize(win[3],avrows-6,avcols-2);
@@ -131,6 +126,10 @@ void updateScreen(WINDOW **win, int &avrows, int &avcols, int &avrowstmo, int &a
 			box(win[wi],0,0);
 			wrefresh(win[wi]);
 		}
-		// Print everything
+		avrowstmo = avrows;
+		avcolstmo = avcols;
+			
+		return 1;
 	}
+	return 0;
 }
