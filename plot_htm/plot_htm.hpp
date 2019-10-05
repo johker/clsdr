@@ -7,9 +7,6 @@
 #include <ncursesw/ncurses.h>
 #include <locale.h>
 
-#define NCOLS 16
-#define SDR_SIZE 256
-
 namespace ph {
 
 
@@ -79,9 +76,8 @@ struct StatusBar {
 
 struct ContentPane {
 
-	ContentPane() {
-
-	}
+	ContentPane(size_t argncols, size_t argSdrSize) 
+	: ncols(argncols), sdrSize(argSdrSize){}
 
 	void print(WINDOW *contwin, const xt::xarray<bool> & sdr, const int avrows, const int avcols){
 		int i; 
@@ -91,8 +87,9 @@ struct ContentPane {
 
 		// Offset depending on HTM topology
 		// We need NCOLS << 1 for whitespaces
-		maxcols = avcols < NCOLS << 1 ? avcols : NCOLS << 1;   	
-		maxrows = (SDR_SIZE << 1) / maxcols; 
+		maxcols = avcols < ncols << 1 ? avcols : ncols << 1;   	
+		maxrows = (sdrSize << 1) / maxcols; 
+
 		yoff = (avrows - maxrows) >> 1;
 		xoff = (avcols - maxcols) >> 1; 
 
@@ -111,6 +108,12 @@ struct ContentPane {
 		}	
 		wrefresh(contwin);
 	}
+
+protected:	
+	size_t ncols;
+	size_t sdrSize;
+
+	
 
 };
 

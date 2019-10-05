@@ -49,8 +49,7 @@ int main(){
 	// Initialize screen objects
 	ph::ControlBar ctrlBr; 
 	ph::StatusBar stBr;
-	ph::ContentPane cntPn;
-
+	ph::ContentPane cntPn(8,8);
 	// Initialize windows
 	win[0] = stdscr;
 	win[1] = newwin(3,avcols-2,0,1);			// Control window
@@ -97,10 +96,11 @@ int main(){
 
 		// Update status and control bar
 		ctrlBr.print(win[1]);	
-		stBr.print(win[2], "i = " + std::to_string(i));		
+		stBr.print(win[2], "index = " + std::to_string(i));		
 		cntPn.print(win[3],sdr,avrows-6,avcols-2);
 
 		i += 1;
+		// TODO Replace for better performing solution
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));	
 
 	} // End of main loop 
