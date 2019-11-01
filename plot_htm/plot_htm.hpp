@@ -16,8 +16,8 @@ namespace ph {
 
 const std::string ACTIVE{"\u25A0"};		// Active Minicolumn 
 const std::string INACTIVE{"\u25A1"};		// Inactive minicolumn
-const std::string SEPMEN{"\u25B8"};		// Menu Separator
-const std::string SEPSEL{"\u25BE"};		// Selection Separator
+const std::string SEPMEN{"\u25B6"};		// Menu Separator
+const std::string SEPSEL{"\u25BC"};		// Selection Separator
 const std::string SEPPRM{":"};			// Parameter Separator
 
 class Item {
@@ -69,7 +69,7 @@ struct ControlBar {
 
 	void addMenu() {
 		// TODO: Link to HTM object
-		auto root = MenuItem::create("", std::shared_ptr<MenuItem>());
+		auto root = MenuItem::create("MENU", std::shared_ptr<MenuItem>());
 		menuStack.push_back(root);
 	       	auto layers = MenuItem::create("LAYERS", root);
 		auto params = MenuItem::create("PARAMS", root);
@@ -83,31 +83,46 @@ struct ControlBar {
 	void selUp(WINDOW *ctrlwin) {
 		selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 		menuStack.back()->selChild = selItem;
+		print(ctrlwin);
 	}
 
 	void selDown(WINDOW *ctrlwin) {
 		selItem = (selItem == menuStack.back()->children.size()-1) ? selItem = 0 : selItem+1;
 		menuStack.back()->selChild = selItem;
+		print(ctrlwin);
 	}
 
 	void selLeft(WINDOW *ctrlwin) {
 		if(menuStack.size()>1) {
 			menuStack.pop_back();
 			selItem = menuStack.back()->selChild;
+		} else {
+			collapsed = true;
 		}
+		print(ctrlwin);
 	}
 
 	void selRight(WINDOW *ctrlwin) {
-		if(!menuStack.back()->isLeaf) {
+		if(collapsed) 
+			collapsed = false;
+		else if(!menuStack.back()->isLeaf) {
 			auto mi = std::static_pointer_cast<MenuItem>(menuStack.back()->children.at(selItem));
 			menuStack.push_back(mi);
 			selItem = 0;
 		}	
+		print(ctrlwin);
+	}
+
+	void collapse(WINDOW *ctrlwin) {
+		menuStack.resize(1);
+		collapsed = true;
+		print(ctrlwin);
 	}
 
 	void print(WINDOW *ctrlwin) 
 	{
 		// TODO
+		wclear(ctrlwin);
 		int x,y,i;
 		i = 0;
 		x = 3; 
@@ -116,33 +131,38 @@ struct ControlBar {
 		// Menu > Submenu > ... > Submenu : (Parameter)
 		for(auto& menuItem : menuStack) {
 			if(i==0) { 
-				continue;	// Ignore Root
-			}
+				// continue;	// Ignore Root
+			} 
 			mvwprintw(ctrlwin,y,x,"%s",menuItem->name.c_str());	
-			x += 7;
+			x += menuItem->name.length()+1;
 			mvwprintw(ctrlwin,y,x,"%s",SEPMEN.c_str());	
 			x += 3;
 			i++;
 		}
-		if(menuStack.back()->isLeaf) {
-			const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
-			wattron(ctrlwin,COLOR_PAIR(1));		 		// Highlight Param
-			mvwprintw(ctrlwin,y,x,"%s",pi->name.c_str());
-			x += 7;
+		if(!collapsed) {
+			const auto& mi = menuStack.back()->children.at(selItem); 
+			wattron(ctrlwin,COLOR_PAIR(1));		 			// Highlight last element
+			mvwprintw(ctrlwin,y,x,"%s",mi->name.c_str());
+			x += mi->name.length()+1;
 			wattroff(ctrlwin,COLOR_PAIR(1));
-			if(pi->isSelection) {
-				mvwprintw(ctrlwin,y,x,"%s",SEPSEL.c_str());	// Add selection separator
+			if(menuStack.back()->isLeaf) {
+				const auto& pi = std::static_pointer_cast<ParamItem>(mi);
+				if(pi->isSelection) {
+					mvwprintw(ctrlwin,y,x,"%s",SEPSEL.c_str());	// Add selection separator
+				} else {
+					mvwprintw(ctrlwin,y,x,"%s",SEPPRM.c_str());	// Add parameter separator
+					x += 3;
+					mvwprintw(ctrlwin,y,x,"%s",std::to_string(pi->value).c_str());	
+				}
 			} else {
-				mvwprintw(ctrlwin,y,x,"%s",SEPPRM.c_str());	// Add parameter separator
-				x += 3;
-				mvwprintw(ctrlwin,y,x,"%s",std::to_string(pi->value).c_str());	
+				mvwprintw(ctrlwin,y,x,"%s",SEPMEN.c_str());		// Add menu separator
 			}
 		}
 		wrefresh(ctrlwin);
 	}
 
 protected:
-
+	bool collapsed = true;
 	std::vector<std::shared_ptr<MenuItem>> menuStack; 
 	int selItem;
 };

@@ -81,16 +81,23 @@ int main(){
 		while(1) { 
 			int key = getch();
 			if(key == ERR) break;
-			if (key == KEY_F(2))  // Switch to select mode
+			if (key == KEY_F(2)) { // Switch to select mode
 				stBr.modeidx = 1;
-		 	else if(stBr.modeidx ==1) {
-					
+				ctrlBr.collapse(win[1]);
+			}
+		 	if(stBr.modeidx ==1) {
 				switch(key) {
 					case KEY_LEFT:
 						ctrlBr.selLeft(win[1]);	
 						break;
 					case KEY_RIGHT:
 						ctrlBr.selRight(win[1]);
+						break;
+					case KEY_UP:
+						ctrlBr.selUp(win[1]);
+						break;
+					case KEY_DOWN:
+						ctrlBr.selDown(win[1]);
 						break;
 					default:
 						break;
