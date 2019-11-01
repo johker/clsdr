@@ -12,7 +12,10 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-
+// VIM like HTM interface:
+// INSERT mode: Keyboard entries are directly encoded 
+// NORMAL mode: Commands to select view, exit program etc.
+// Input should be decoupled from HTM output so a different sensor can be used easily
 
 
 const std::string ACTIVE{"\u25A0"};
@@ -50,6 +53,7 @@ int main(){
 	ph::ControlBar ctrlBr; 
 	ph::StatusBar stBr;
 	ph::ContentPane cntPn(8,8);
+
 	// Initialize windows
 	win[0] = stdscr;
 	win[1] = newwin(3,avcols-2,0,1);			// Control window
@@ -77,16 +81,21 @@ int main(){
 		while(1) { 
 			int key = getch();
 			if(key == ERR) break;
-		 	else switch(key) {
-				case KEY_LEFT:
-					ctrlBr.selLeft(win[1]);	
-					break;
-				case KEY_RIGHT:
-					ctrlBr.selRight(win[1]);
-					break;
-				default:
-					break;
-				} 
+			if (key == KEY_F(2))  // Switch to select mode
+				stBr.modeidx = 1;
+		 	else if(stBr.modeidx ==1) {
+					
+				switch(key) {
+					case KEY_LEFT:
+						ctrlBr.selLeft(win[1]);	
+						break;
+					case KEY_RIGHT:
+						ctrlBr.selRight(win[1]);
+						break;
+					default:
+						break;
+					} 
+				}
 		}
 		// HTM Update 
 		auto sdr = encoder.encode(i%numcat);
