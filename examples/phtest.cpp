@@ -20,7 +20,7 @@
 
 const std::string ACTIVE{"\u25A0"};
 
-int updateScreen(WINDOW **win, int &avrows, int &avcols, int &avrowstmo, int &avcolstmo); 
+int updateScreen(WINDOW **win, const std::shared_ptr<ph::HtmController>& htmCtrl); 
 void initNcurses();
 
 int main(){
@@ -46,13 +46,18 @@ int main(){
 	leaveok(stdscr,1);					// Dont care where cursor is left
 	intrflush(stdscr,0);					// Avoid potential graphical issues
 
+	// Initialize controller
+	std::shared_ptr<ph::HtmController> htmCtrl = std::make_shared<ph::HtmController>();
+	
 	// Get initial screen dimensions
 	getmaxyx(stdscr,avrows,avcols);	
+	htmCtrl->avrows = avrows;
+	htmCtrl->avcols = avcols;
 
-	// Initialize screen objects
-	ph::ControlBar ctrlBr; 
-	ph::StatusBar stBr;
-	ph::ContentPane cntPn(8,8);
+	// Initialize view objects
+	ph::ControlBar ctrlBr(htmCtrl); 
+	ph::StatusBar stBr(htmCtrl);
+	ph::ContentPane cntPn(htmCtrl);
 
 	// Initialize windows
 	win[0] = stdscr;
@@ -108,12 +113,12 @@ int main(){
 		auto sdr = encoder.encode(i%numcat);
 
 		// Update screen dimension
-		auto updt = updateScreen(win, avrows,avcols,avrowstmo,avcolstmo);
+		auto updt = updateScreen(win, htmCtrl);
 
 		// Update status and control bar
 		ctrlBr.print(win[1]);	
 		stBr.print(win[2], "index = " + std::to_string(i));		
-		cntPn.print(win[3],sdr,avrows-6,avcols-2);
+		cntPn.print(win[3],sdr);
 
 		i += 1;
 		// TODO Replace for better performing solution
@@ -128,22 +133,22 @@ int main(){
 }
 
 
-int updateScreen(WINDOW **win, int &avrows, int &avcols, int &avrowstmo, int &avcolstmo) {
+int updateScreen(WINDOW **win, const std::shared_ptr<ph::HtmController>& htmCtrl) {
 	
-	getmaxyx(win[0],avrows,avcols);	// Get screen dimensions
-	if(avrows != avrowstmo || avcols != avcolstmo) {
-		wresize(win[1],3,avcols-2);
-		wresize(win[2],3,avcols-2);
-		wresize(win[3],avrows-6,avcols-2);
-		mvwin(win[2],avrows-3,1); 
+	getmaxyx(win[0],htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
+	if(htmCtrl->avrows != htmCtrl->avrowstmo || htmCtrl->avcols != htmCtrl->avcolstmo) {
+		wresize(win[1],3,htmCtrl->avcols-2);
+		wresize(win[2],3,htmCtrl->avcols-2);
+		wresize(win[3],htmCtrl->avrows-6,htmCtrl->avcols-2);
+		mvwin(win[2],htmCtrl->avrows-3,1); 
 		wclear(win[0]);
 		for(int wi = 1; wi < 4; wi++) {
 			wclear(win[wi]);
 			box(win[wi],0,0);
 			wrefresh(win[wi]);
 		}
-		avrowstmo = avrows;
-		avcolstmo = avcols;
+		htmCtrl->avrowstmo = htmCtrl->avrows;
+		htmCtrl->avcolstmo = htmCtrl->avcols;
 			
 		return 1;
 	}

@@ -20,6 +20,17 @@ const std::string SEPMEN{"\u25B6"};		// Menu Separator
 const std::string SEPSEL{"\u25BC"};		// Selection Separator
 const std::string SEPPRM{":"};			// Parameter Separator
 
+
+class HtmController {
+public: 
+	int avrows;
+	int avcols; 
+	int avrowstmo; 
+	int avcolstmo; 
+	size_t sdrSize = 8; 
+	size_t ncols = 8;	
+};
+
 class Item {
 public:
 	const std::string name; 
@@ -61,9 +72,9 @@ private:
 	ParamItem(const std::string &name): Item(name) {}
 };
 
-struct ControlBar {
-	
-	ControlBar()  {
+class ControlBar {
+public:	
+	ControlBar(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {
 		addMenu();
 	}
 
@@ -161,15 +172,17 @@ struct ControlBar {
 		wrefresh(ctrlwin);
 	}
 
-protected:
+private:	
+	std::shared_ptr<HtmController> htmCtrl;
 	bool collapsed = true;
 	std::vector<std::shared_ptr<MenuItem>> menuStack; 
 	int selItem;
 };
 
-struct StatusBar {
-
-	StatusBar() {
+class StatusBar {
+public:
+	StatusBar(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl)
+{
 		modes.push_back("INSERT");
 		modes.push_back("SELECT");
 		modeidx = 0;
@@ -188,14 +201,15 @@ struct StatusBar {
 	std::vector<std::string> modes;
 	int modeidx;
 				
+private:	
+	std::shared_ptr<HtmController> htmCtrl;
 };
 
-struct ContentPane {
+class ContentPane {
+public:
+	ContentPane(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl){}
 
-	ContentPane(size_t argncols, size_t argSdrSize) 
-	: ncols(argncols), sdrSize(argSdrSize){}
-
-	void print(WINDOW *contwin, const xt::xarray<bool> & sdr, const int avrows, const int avcols){
+	void print(WINDOW *contwin, const xt::xarray<bool> & sdr){
 		int i; 
 		int xi,yi;
 		int xoff,yoff;
@@ -203,11 +217,11 @@ struct ContentPane {
 
 		// Offset depending on HTM topology
 		// We need NCOLS << 1 for whitespaces
-		maxcols = avcols < ncols << 1 ? avcols : ncols << 1;   	
-		maxrows = (sdrSize << 1) / maxcols; 
+		maxcols = htmCtrl->avcols-2 < htmCtrl->ncols << 1 ? htmCtrl->avcols-2 : htmCtrl->ncols << 1;   	
+		maxrows = (htmCtrl->sdrSize << 1) / maxcols;
 
-		yoff = (avrows - maxrows) >> 1;
-		xoff = (avcols - maxcols) >> 1; 
+		yoff = (htmCtrl->avrows-6 - maxrows) >> 1;
+		xoff = (htmCtrl->avcols-2 - maxcols) >> 1; 
 
 		for(i = 0; i < sdr.size(); i++) {
 			xi = (i << 1) % maxcols + xoff;
@@ -225,12 +239,8 @@ struct ContentPane {
 		wrefresh(contwin);
 	}
 
-protected:	
-	size_t ncols;
-	size_t sdrSize;
-
-	
-
+private:	
+	std::shared_ptr<HtmController> htmCtrl;
 };
 
 }
