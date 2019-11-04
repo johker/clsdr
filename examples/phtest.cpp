@@ -45,9 +45,17 @@ int main(){
 	nonl();							// Get return key
 	leaveok(stdscr,1);					// Dont care where cursor is left
 	intrflush(stdscr,0);					// Avoid potential graphical issues
+	
+	// HTM 
+	size_t numcat = 2;
+	size_t enclen = 4;
+	size_t phorizon = 10; 
 
+	th::CategoryEncoder encoder(numcat, enclen);
+	th::TemporalMemory tm({numcat*4}, 6);
+	
 	// Initialize controller
-	std::shared_ptr<ph::HtmController> htmCtrl = std::make_shared<ph::HtmController>();
+	std::shared_ptr<ph::HtmController> htmCtrl = std::make_shared<ph::HtmController>(encoder);
 	
 	// Get initial screen dimensions
 	getmaxyx(stdscr,avrows,avcols);	
@@ -73,13 +81,7 @@ int main(){
 	// Initialize colors
 	init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
-	// HTM Test	
-	size_t numcat = 2;
-	size_t enclen = 4;
-	size_t phorizon = 10; 
 
-	th::CategoryEncoder encoder(numcat, enclen);
-	th::TemporalMemory tm({numcat*4}, 6);
 				
 	while(1) {
 		// User Input

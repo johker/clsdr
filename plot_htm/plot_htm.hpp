@@ -1,12 +1,14 @@
 #pragma once
 
 #include <string>
+#include <cstring>
 #include <chrono>
 #include <thread>
 #include <memory>
 #include <algorithm>
 #include <xtensor/xarray.hpp>
 #include <ncursesw/ncurses.h>
+#include "../../tiny_htm/tiny_htm/tiny_htm.hpp"
 #include <locale.h>
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -14,33 +16,71 @@
 
 namespace ph {
 
-const std::string ACTIVE{"\u25A0"};		// Active Minicolumn 
-const std::string INACTIVE{"\u25A1"};		// Inactive minicolumn
-const std::string SEPMEN{"\u25B6"};		// Menu Separator
-const std::string SEPSEL{"\u25BC"};		// Selection Separator
-const std::string SEPPRM{":"};			// Parameter Separator
+constexpr unsigned int hash(const char *s, int off = 0) {                        
+	return !s[off] ? 5381 : (hash(s, off+1)*33) ^ s[off];                           
+}        
+
+constexpr char SYM_ACTIVE[]{"\u25A0"};		// Active Minicolumn 
+constexpr char SYM_INACTIVE[]{"\u25A1"};	// Inactive minicolumn
+
+constexpr char SEP_MEN[]{"\u25B6"};		// Menu Separator
+constexpr char SEP_SEL[]{"\u25BC"};		// Selection Separator
+constexpr char SEP_PRM[]{":"};			// Parameter Separator
+
+constexpr char KEY_MENU[]{"MENU"};		// Menu
+constexpr char KEY_LAYERS[]{"LAYERS"};		// Layers
+constexpr char KEY_PARAMS[]{"PARMS"};		// Params
+constexpr char KEY_INPUT[]{"INPUT"};		// Input
+constexpr char KEY_SPOOL[]{"SPOOL"};		// Spatial Pooler
+constexpr char KEY_SDRLEN[]{"SDRLEN"};		// SDR Length
+constexpr char KEY_ACTDEN[]{"ACTDEN"};		// Active Density
 
 
 class HtmController {
 public: 
+	HtmController(th::CategoryEncoder& argCategoryEncoder) : categoryEncoder(argCategoryEncoder){};
+	// Screen params
 	int avrows;
 	int avcols; 
 	int avrowstmo; 
 	int avcolstmo; 
+
+	// Active Model
+
+	// Models
+	th::CategoryEncoder& categoryEncoder; 
+
 	size_t sdrSize = 8; 
 	size_t ncols = 8;	
+	int layer=0; 
+
+	const char* getValue(const char* key) {
+		const char * value;
+		switch(hash(key)) {
+			case hash(KEY_SDRLEN):
+				value = std::to_string(categoryEncoder.sdrLength()).c_str();
+			break;
+			case hash(KEY_ACTDEN):
+				value = std::to_string(categoryEncoder.encodeLength()).c_str();
+			break;
+		}		
+		return value;
+	}
+	// onParam Function for HTM parameter 
+	// setPermanence() {model.setPermanance;} 
+	// getPermannce() {model.getPermance;}
 };
 
 class Item {
 public:
-	const std::string name; 
+	const char* name; 
 protected:
-	Item(const std::string &name) : name(name) {}
+	Item(const char* name) : name(name) {}
 };
 
 class MenuItem : public Item {
 public:	
-	static std::shared_ptr<MenuItem> create(const std::string &argName, std::shared_ptr<MenuItem> parent) {
+	static std::shared_ptr<MenuItem> create(const char* argName, std::shared_ptr<MenuItem> parent) {
 		auto mi = std::shared_ptr<MenuItem>(new MenuItem(argName));
 		if(parent != nullptr) {
 			parent->children.push_back(mi);
@@ -51,25 +91,28 @@ public:
 	int selChild = 0;
 	bool isLeaf = false;
 private:
-	MenuItem(const std::string &name): Item(name) {}
+	MenuItem(const char* name): Item(name) {}
 };
 
 class ParamItem : public Item {
 public:
-	static std::shared_ptr<ParamItem> create(const std::string &argName, std::shared_ptr<MenuItem> parent, bool argSelection) {
+	static std::shared_ptr<ParamItem> create(const char* argName, std::shared_ptr<MenuItem> parent, std::shared_ptr<HtmController> argHtmCtrl, bool argSelection) {
 		auto pi = std::shared_ptr<ParamItem>(new ParamItem(argName));
 		if(parent != nullptr) {
 			parent->children.push_back(pi);
 			parent->isLeaf = true;
 			pi->isSelection = argSelection;
+			pi->htmCtrl = argHtmCtrl;
 		}
 		return pi;
 	}
 	bool isSelection = false;
-	double value = 0.0;
-	std::string key;
+	std::shared_ptr<HtmController> htmCtrl;
+	const char* getValue() {
+		return htmCtrl->getValue(name);
+	}
 private:
-	ParamItem(const std::string &name): Item(name) {}
+	ParamItem(const char* name): Item(name) {}
 };
 
 class ControlBar {
@@ -80,14 +123,14 @@ public:
 
 	void addMenu() {
 		// TODO: Link to HTM object
-		auto root = MenuItem::create("MENU", std::shared_ptr<MenuItem>());
+		auto root = MenuItem::create(KEY_MENU, std::shared_ptr<MenuItem>());
 		menuStack.push_back(root);
-	       	auto layers = MenuItem::create("LAYERS", root);
-		auto params = MenuItem::create("PARAMS", root);
-		ParamItem::create("INPUT", layers, true);
-		ParamItem::create("SPOOL", layers, true);
-		ParamItem::create("SDRLEN", params, false);
-		ParamItem::create("ACTDEN", params, false);
+	       	auto layers = MenuItem::create(KEY_LAYERS, root);
+		auto params = MenuItem::create(KEY_PARAMS, root);
+		ParamItem::create(KEY_INPUT, layers, htmCtrl, true);
+		ParamItem::create(KEY_SPOOL, layers, htmCtrl, true);
+		ParamItem::create(KEY_SDRLEN, params, htmCtrl, false);
+		ParamItem::create(KEY_ACTDEN, params, htmCtrl, false);
 		selItem = 0;
 	}
 
@@ -144,29 +187,29 @@ public:
 			if(i==0) { 
 				// continue;	// Ignore Root
 			} 
-			mvwprintw(ctrlwin,y,x,"%s",menuItem->name.c_str());	
-			x += menuItem->name.length()+1;
-			mvwprintw(ctrlwin,y,x,"%s",SEPMEN.c_str());	
+			mvwprintw(ctrlwin,y,x,"%s",menuItem->name);	
+			x += strlen(menuItem->name)+1;
+			mvwprintw(ctrlwin,y,x,"%s",SEP_MEN);	
 			x += 3;
 			i++;
 		}
 		if(!collapsed) {
 			const auto& mi = menuStack.back()->children.at(selItem); 
 			wattron(ctrlwin,COLOR_PAIR(1));		 			// Highlight last element
-			mvwprintw(ctrlwin,y,x,"%s",mi->name.c_str());
-			x += mi->name.length()+1;
+			mvwprintw(ctrlwin,y,x,"%s",mi->name);
+			x += strlen(mi->name)+1;
 			wattroff(ctrlwin,COLOR_PAIR(1));
 			if(menuStack.back()->isLeaf) {
 				const auto& pi = std::static_pointer_cast<ParamItem>(mi);
 				if(pi->isSelection) {
-					mvwprintw(ctrlwin,y,x,"%s",SEPSEL.c_str());	// Add selection separator
+					mvwprintw(ctrlwin,y,x,"%s",SEP_SEL);	// Add selection separator
 				} else {
-					mvwprintw(ctrlwin,y,x,"%s",SEPPRM.c_str());	// Add parameter separator
+					mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
 					x += 3;
-					mvwprintw(ctrlwin,y,x,"%s",std::to_string(pi->value).c_str());	
+					mvwprintw(ctrlwin,y,x,"%s",pi->getValue());	
 				}
 			} else {
-				mvwprintw(ctrlwin,y,x,"%s",SEPMEN.c_str());		// Add menu separator
+				mvwprintw(ctrlwin,y,x,"%s",SEP_MEN);		// Add menu separator
 			}
 		}
 		wrefresh(ctrlwin);
@@ -228,11 +271,11 @@ public:
 			yi = (i << 1) / maxcols + yoff;
 
 			if(sdr[i]) {
-				mvwprintw(contwin,yi,xi,ACTIVE.c_str());
+				mvwprintw(contwin,yi,xi,SYM_ACTIVE);
 				mvwaddch(contwin,yi,xi-1,' ');
 			}
 			else {
-				mvwprintw(contwin,yi,xi,INACTIVE.c_str());
+				mvwprintw(contwin,yi,xi,SYM_INACTIVE);
 				mvwaddch(contwin,yi,xi-1,' ');
 			}
 		}	
