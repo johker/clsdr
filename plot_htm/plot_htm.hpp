@@ -28,7 +28,8 @@ constexpr char SEP_SEL[]{"\u25BC"};		// Selection Separator
 constexpr char SEP_PRM[]{":"};			// Parameter Separator
 
 constexpr char KEY_MENU[]{"MENU"};		// Menu
-constexpr char KEY_LAYERS[]{"LAYERS"};		// Layers
+constexpr char KEY_VIEW[]{"VIEW"};		// View
+constexpr char KEY_LAYER[]{"LAYER"};		// Layer
 constexpr char KEY_PARAMS[]{"PARMS"};		// Params
 constexpr char KEY_INPUT[]{"INPUT"};		// Input
 constexpr char KEY_SPOOL[]{"SPOOL"};		// Spatial Pooler
@@ -46,6 +47,7 @@ public:
 	int avcolstmo; 
 
 	// Active Model
+	// TODO Dynamically switch between different encoders while keeping same parameter keys
 
 	// Models
 	th::CategoryEncoder& categoryEncoder; 
@@ -66,9 +68,6 @@ public:
 		}		
 		return value;
 	}
-	// onParam Function for HTM parameter 
-	// setPermanence() {model.setPermanance;} 
-	// getPermannce() {model.getPermance;}
 };
 
 class Item {
@@ -96,19 +95,20 @@ private:
 
 class ParamItem : public Item {
 public:
-	static std::shared_ptr<ParamItem> create(const char* argName, std::shared_ptr<MenuItem> parent, std::shared_ptr<HtmController> argHtmCtrl, bool argSelection) {
+	static std::shared_ptr<ParamItem> create(const char* argName, std::shared_ptr<MenuItem> parent, std::shared_ptr<HtmController> argHtmCtrl, bool argSelector) {
 		auto pi = std::shared_ptr<ParamItem>(new ParamItem(argName));
 		if(parent != nullptr) {
 			parent->children.push_back(pi);
 			parent->isLeaf = true;
-			pi->isSelection = argSelection;
+			pi->isSelector = argSelector;
 			pi->htmCtrl = argHtmCtrl;
 		}
 		return pi;
 	}
-	bool isSelection = false;
+	bool isSelector = false;
 	std::shared_ptr<HtmController> htmCtrl;
 	const char* getValue() {
+		// TODO Retun char** in case it is a selector
 		return htmCtrl->getValue(name);
 	}
 private:
@@ -122,25 +122,27 @@ public:
 	}
 
 	void addMenu() {
-		// TODO: Link to HTM object
 		auto root = MenuItem::create(KEY_MENU, std::shared_ptr<MenuItem>());
 		menuStack.push_back(root);
-	       	auto layers = MenuItem::create(KEY_LAYERS, root);
+	       	auto view = MenuItem::create(KEY_VIEW, root);
 		auto params = MenuItem::create(KEY_PARAMS, root);
-		ParamItem::create(KEY_INPUT, layers, htmCtrl, true);
-		ParamItem::create(KEY_SPOOL, layers, htmCtrl, true);
+		ParamItem::create(KEY_LAYER, view, htmCtrl, true);
 		ParamItem::create(KEY_SDRLEN, params, htmCtrl, false);
 		ParamItem::create(KEY_ACTDEN, params, htmCtrl, false);
 		selItem = 0;
 	}
 
 	void selUp(WINDOW *ctrlwin) {
+		// TODO Extend to selector navigation
+		editing = false;
 		selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 		menuStack.back()->selChild = selItem;
 		print(ctrlwin);
 	}
 
 	void selDown(WINDOW *ctrlwin) {
+		// TODO Extend to selector navigation
+		editing = false;
 		selItem = (selItem == menuStack.back()->children.size()-1) ? selItem = 0 : selItem+1;
 		menuStack.back()->selChild = selItem;
 		print(ctrlwin);
@@ -157,13 +159,31 @@ public:
 	}
 
 	void selRight(WINDOW *ctrlwin) {
-		if(collapsed) 
+		if(collapsed) {
 			collapsed = false;
+		}
 		else if(!menuStack.back()->isLeaf) {
 			auto mi = std::static_pointer_cast<MenuItem>(menuStack.back()->children.at(selItem));
 			menuStack.push_back(mi);
 			selItem = 0;
 		}	
+		print(ctrlwin);
+	}
+
+	void enter(WINDOW *ctrlwin) {
+		if(collapsed || !menuStack.back()->isLeaf) { 
+			selRight(ctrlwin);
+		} else {
+			const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
+			if(editing) {
+				// Confirm new value by calling set 
+				// Remove blinking attribute
+				editing = false; 
+			} else {
+
+				editing = true;
+			}
+		}
 		print(ctrlwin);
 	}
 
@@ -195,18 +215,22 @@ public:
 		}
 		if(!collapsed) {
 			const auto& mi = menuStack.back()->children.at(selItem); 
-			wattron(ctrlwin,COLOR_PAIR(1));		 			// Highlight last element
+			wattron(ctrlwin,COLOR_PAIR(1));			// Highlight last element
 			mvwprintw(ctrlwin,y,x,"%s",mi->name);
 			x += strlen(mi->name)+1;
 			wattroff(ctrlwin,COLOR_PAIR(1));
 			if(menuStack.back()->isLeaf) {
 				const auto& pi = std::static_pointer_cast<ParamItem>(mi);
-				if(pi->isSelection) {
+				if(pi->isSelector) {
 					mvwprintw(ctrlwin,y,x,"%s",SEP_SEL);	// Add selection separator
+					// TODO: Print selector values
 				} else {
 					mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
 					x += 3;
+					if(editing) 
+						wattron(ctrlwin, A_BLINK);
 					mvwprintw(ctrlwin,y,x,"%s",pi->getValue());	
+					wattroff(ctrlwin, A_BLINK);
 				}
 			} else {
 				mvwprintw(ctrlwin,y,x,"%s",SEP_MEN);		// Add menu separator
@@ -217,9 +241,10 @@ public:
 
 private:	
 	std::shared_ptr<HtmController> htmCtrl;
-	bool collapsed = true;
 	std::vector<std::shared_ptr<MenuItem>> menuStack; 
 	int selItem;
+	bool collapsed = true;
+	bool editing = false;
 };
 
 class StatusBar {

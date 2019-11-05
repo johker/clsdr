@@ -17,8 +17,10 @@
 // NORMAL mode: Commands to select view, exit program etc.
 // Input should be decoupled from HTM output so a different sensor can be used easily
 
+#define KEY_LINE_FEED 0x0A
+#define KEY_CARRIAGE_RETURN 0x0D
 
-const std::string ACTIVE{"\u25A0"};
+//const std::string ACTIVE{"\u25A0"};
 
 int updateScreen(WINDOW **win, const std::shared_ptr<ph::HtmController>& htmCtrl); 
 void initNcurses();
@@ -105,6 +107,15 @@ int main(){
 						break;
 					case KEY_DOWN:
 						ctrlBr.selDown(win[1]);
+						break;
+					case KEY_ENTER: 
+						ctrlBr.enter(win[1]);
+						break;
+					case KEY_LINE_FEED: 
+						ctrlBr.enter(win[1]);
+						break;
+					case KEY_CARRIAGE_RETURN: 
+						ctrlBr.enter(win[1]);
 						break;
 					default:
 						break;
