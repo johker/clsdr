@@ -36,7 +36,6 @@ constexpr char KEY_SPOOL[]{"SPOOL"};		// Spatial Pooler
 constexpr char KEY_SDRLEN[]{"SDRLEN"};		// SDR Length
 constexpr char KEY_ACTDEN[]{"ACTDEN"};		// Active Density
 
-
 class HtmController {
 public: 
 	HtmController(th::CategoryEncoder& argCategoryEncoder) : categoryEncoder(argCategoryEncoder){};
@@ -68,13 +67,17 @@ public:
 		}		
 		return value;
 	}
+	void setValue(const char* key, double value) {
+		// TODO: Set value
+	}
 };
 
 class Item {
 public:
 	const char* name; 
+	int type;
 protected:
-	Item(const char* name) : name(name) {}
+	Item(const char* name, int type) : name(name), type(type) {}
 };
 
 class MenuItem : public Item {
@@ -90,29 +93,61 @@ public:
 	int selChild = 0;
 	bool isLeaf = false;
 private:
-	MenuItem(const char* name): Item(name) {}
+	MenuItem(const char* name): Item(name, 0) {}
 };
 
 class ParamItem : public Item {
 public:
-	static std::shared_ptr<ParamItem> create(const char* argName, std::shared_ptr<MenuItem> parent, std::shared_ptr<HtmController> argHtmCtrl, bool argSelector) {
+	static std::shared_ptr<ParamItem> create(const char* argName, std::shared_ptr<MenuItem> parent, std::shared_ptr<HtmController> argHtmCtrl) {
 		auto pi = std::shared_ptr<ParamItem>(new ParamItem(argName));
 		if(parent != nullptr) {
 			parent->children.push_back(pi);
 			parent->isLeaf = true;
-			pi->isSelector = argSelector;
 			pi->htmCtrl = argHtmCtrl;
 		}
 		return pi;
 	}
-	bool isSelector = false;
-	std::shared_ptr<HtmController> htmCtrl;
 	const char* getValue() {
-		// TODO Retun char** in case it is a selector
 		return htmCtrl->getValue(name);
 	}
 private:
-	ParamItem(const char* name): Item(name) {}
+	ParamItem(const char* name): Item(name, 1) {}
+	std::shared_ptr<HtmController> htmCtrl;
+};
+
+
+class SelectItem : public Item {
+public:
+	static std::shared_ptr<SelectItem> create(const char* argName, std::shared_ptr<MenuItem> parent, std::shared_ptr<HtmController> argHtmCtrl,std::vector<std::string> argOptions) {
+		auto pi = std::shared_ptr<SelectItem>(new SelectItem(argName));
+		if(parent != nullptr) {
+			parent->children.push_back(pi);
+			parent->isLeaf = true;
+			pi->htmCtrl = argHtmCtrl;
+			pi->options = argOptions;
+			// TODO: load current index from controller
+		}
+		return pi;
+	}
+	void selectValue(){
+		selIdx = curIdx;
+		htmCtrl->setValue(name,selIdx);
+	}
+	const char* getValue() {
+		return options.at(curIdx).c_str();
+	}
+	void nextValue() {
+		curIdx = (curIdx+1<options.size())? curIdx++ : 0;
+	}
+	void prevValue() {
+		curIdx = (curIdx-1>=0) ? curIdx-- : options.size()-1;
+	}
+private:
+	SelectItem(const char* name): Item(name,2) {}
+	std::shared_ptr<HtmController> htmCtrl;
+	std::vector<std::string> options;
+	size_t selIdx = 0;
+	size_t curIdx = 0;
 };
 
 class ControlBar {
@@ -126,9 +161,10 @@ public:
 		menuStack.push_back(root);
 	       	auto view = MenuItem::create(KEY_VIEW, root);
 		auto params = MenuItem::create(KEY_PARAMS, root);
-		ParamItem::create(KEY_LAYER, view, htmCtrl, true);
-		ParamItem::create(KEY_SDRLEN, params, htmCtrl, false);
-		ParamItem::create(KEY_ACTDEN, params, htmCtrl, false);
+		ParamItem::create(KEY_SDRLEN, params, htmCtrl);
+		ParamItem::create(KEY_ACTDEN, params, htmCtrl);
+		std::vector<std::string> options = {KEY_INPUT, KEY_SPOOL};
+		SelectItem::create(KEY_LAYER, view, htmCtrl, options);
 		selItem = 0;
 	}
 
@@ -195,43 +231,38 @@ public:
 
 	void print(WINDOW *ctrlwin) 
 	{
-		// TODO
 		wclear(ctrlwin);
-		int x,y,i;
-		i = 0;
-		x = 3; 
-		y = 1;
+		int i = 0, x = 3, y = 1;
 		box(ctrlwin,0,0); 
-		// Menu > Submenu > ... > Submenu : (Parameter)
-		for(auto& menuItem : menuStack) {
-			if(i==0) { 
-				// continue;	// Ignore Root
-			} 
+		for(auto& menuItem : menuStack) { 	// Menu > Submenu > ... > Leaf : (Parameter)
 			mvwprintw(ctrlwin,y,x,"%s",menuItem->name);	
 			x += strlen(menuItem->name)+1;
 			mvwprintw(ctrlwin,y,x,"%s",SEP_MEN);	
 			x += 3;
 			i++;
 		}
-		if(!collapsed) {
+		if(!collapsed) {			
 			const auto& mi = menuStack.back()->children.at(selItem); 
 			wattron(ctrlwin,COLOR_PAIR(1));			// Highlight last element
 			mvwprintw(ctrlwin,y,x,"%s",mi->name);
 			x += strlen(mi->name)+1;
 			wattroff(ctrlwin,COLOR_PAIR(1));
-			if(menuStack.back()->isLeaf) {
+			if(mi->type == 1) {
 				const auto& pi = std::static_pointer_cast<ParamItem>(mi);
-				if(pi->isSelector) {
-					mvwprintw(ctrlwin,y,x,"%s",SEP_SEL);	// Add selection separator
-					// TODO: Print selector values
-				} else {
-					mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
-					x += 3;
-					if(editing) 
-						wattron(ctrlwin, A_BLINK);
-					mvwprintw(ctrlwin,y,x,"%s",pi->getValue());	
-					wattroff(ctrlwin, A_BLINK);
-				}
+				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
+				x += 3;
+				if(editing) 
+					wattron(ctrlwin, A_BLINK);
+				mvwprintw(ctrlwin,y,x,"%s",pi->getValue());	
+				wattroff(ctrlwin, A_BLINK);
+			} else if(mi->type == 2) {
+			       const auto& si = std::static_pointer_cast<SelectItem>(mi);
+				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
+				x += 3;
+				if(editing)
+					wattron(ctrlwin,A_BLINK);
+				mvwprintw(ctrlwin,y,x,"%s",si->getValue());
+				wattroff(ctrlwin, A_BLINK); 
 			} else {
 				mvwprintw(ctrlwin,y,x,"%s",SEP_MEN);		// Add menu separator
 			}
