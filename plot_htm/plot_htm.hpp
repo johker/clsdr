@@ -169,18 +169,28 @@ public:
 	}
 
 	void selUp(WINDOW *ctrlwin) {
-		// TODO Extend to selector navigation
-		editing = false;
-		selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
-		menuStack.back()->selChild = selItem;
+		auto& mi = menuStack.back()->children.at(selItem);
+		if(editing && mi->type==2) {
+			const auto& si = std::static_pointer_cast<SelectItem>(mi);
+			si->nextValue();
+		} else {
+			editing = false;
+			selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
+			menuStack.back()->selChild = selItem;
+		}
 		print(ctrlwin);
 	}
 
 	void selDown(WINDOW *ctrlwin) {
-		// TODO Extend to selector navigation
-		editing = false;
-		selItem = (selItem == menuStack.back()->children.size()-1) ? selItem = 0 : selItem+1;
-		menuStack.back()->selChild = selItem;
+		auto& mi = menuStack.back()->children.at(selItem);
+		if(editing && mi->type==2) {
+			const auto& si = std::static_pointer_cast<SelectItem>(mi);
+			si->prevValue();
+		} else {
+			editing = false;
+			selItem = (selItem == menuStack.back()->children.size()-1) ? selItem = 0 : selItem+1;
+			menuStack.back()->selChild = selItem;
+		}
 		print(ctrlwin);
 	}
 
