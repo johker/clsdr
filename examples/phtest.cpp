@@ -130,7 +130,8 @@ int main(){
 
 		// Update status and control bar
 		ctrlBr.print(win[1]);	
-		stBr.print(win[2], "index = " + std::to_string(i));		
+		htmCtrl->setStatus(" Index = " + std::to_string(i));
+		stBr.print(win[2]);		
 		cntPn.print(win[3],sdr);
 
 		i += 1;

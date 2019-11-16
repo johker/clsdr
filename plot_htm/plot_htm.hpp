@@ -70,6 +70,12 @@ public:
 	void setValue(const char* key, double value) {
 		// TODO: Set value
 	}
+	void setStatus(std::string txt){
+		status = txt; 
+	}
+	std::string getStatus() {return status;}
+private: 
+	std::string status;
 };
 
 class Item {
@@ -226,7 +232,6 @@ public:
 				// Remove blinking attribute
 				editing = false; 
 			} else {
-
 				editing = true;
 			}
 		}
@@ -297,14 +302,14 @@ public:
 		modeidx = 0;
 	}
 
-	void print(WINDOW *statwin, const std::string& msg)  {
+	void print(WINDOW *statwin)  {
 		int x,y; 
 		x = 3;
 		y = 1;	
 		box(statwin,0,0); 
 		mvwprintw(statwin,y,x,modes.at(modeidx).c_str());
 		x += 7;
-		mvwprintw(statwin,y,x,msg.c_str());
+		mvwprintw(statwin,y,x,htmCtrl->getStatus().c_str());
 		wrefresh(statwin);
 	}	
 	std::vector<std::string> modes;
