@@ -23,6 +23,10 @@ constexpr unsigned int hash(const char *s, int off = 0) {
 constexpr char SYM_ACTIVE[]{"\u25A0"};		// Active Minicolumn 
 constexpr char SYM_INACTIVE[]{"\u25A1"};	// Inactive minicolumn
 
+constexpr char MODE_INSERT[]{"INSERT"};		// Insert data
+constexpr char MODE_SELECT[]{"SELECT"};		// Select from menu
+constexpr char MODE_EDIT[]{"EDIT"};		// Edit parameter
+
 constexpr char SEP_MEN[]{"\u25B6"};		// Menu Separator
 constexpr char SEP_SEL[]{"\u25BC"};		// Selection Separator
 constexpr char SEP_PRM[]{":"};			// Parameter Separator
@@ -70,12 +74,15 @@ public:
 	void setValue(const char* key, double value) {
 		// TODO: Set value
 	}
-	void setStatus(std::string txt){
-		status = txt; 
-	}
-	std::string getStatus() {return status;}
+	void setStatusTxt(std::string argStatusTxt){statusTxt = argStatusTxt;}
+	void setModeIdx(size_t argModeIdx){modeIdx = argModeIdx;}
+	std::string getStatusTxt() {return statusTxt;}
+	size_t getModeIdx() {return modeIdx;}
+	std::string getModeTxt() {return modes.at(modeIdx);}
 private: 
-	std::string status;
+	std::string statusTxt;
+	std::vector<std::string> modes{MODE_INSERT,MODE_SELECT,MODE_EDIT};
+	size_t modeIdx = 0;
 };
 
 class Item {
@@ -143,10 +150,10 @@ public:
 		return options.at(curIdx).c_str();
 	}
 	void nextValue() {
-		curIdx = (curIdx+1<options.size())? curIdx++ : 0;
+		curIdx = (curIdx+1<options.size())? curIdx+1 : 0;
 	}
 	void prevValue() {
-		curIdx = (curIdx-1>=0) ? curIdx-- : options.size()-1;
+		curIdx = (curIdx-1>=0) ? curIdx-1 : options.size()-1;
 	}
 private:
 	SelectItem(const char* name): Item(name,2) {}
@@ -176,11 +183,11 @@ public:
 
 	void selUp(WINDOW *ctrlwin) {
 		auto& mi = menuStack.back()->children.at(selItem);
-		if(editing && mi->type==2) {
+		if(htmCtrl->getModeIdx()==2 && mi->type==2) {
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
-			si->nextValue();
+			si->prevValue();
 		} else {
-			editing = false;
+			htmCtrl->setModeIdx(1);
 			selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 			menuStack.back()->selChild = selItem;
 		}
@@ -189,11 +196,12 @@ public:
 
 	void selDown(WINDOW *ctrlwin) {
 		auto& mi = menuStack.back()->children.at(selItem);
-		if(editing && mi->type==2) {
+		if(htmCtrl->getModeIdx()==2 && mi->type==2) {
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
-			si->prevValue();
+			si->nextValue();
 		} else {
-			editing = false;
+			htmCtrl->setModeIdx(1);
+			selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 			selItem = (selItem == menuStack.back()->children.size()-1) ? selItem = 0 : selItem+1;
 			menuStack.back()->selChild = selItem;
 		}
@@ -227,12 +235,12 @@ public:
 			selRight(ctrlwin);
 		} else {
 			const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
-			if(editing) {
+			if(htmCtrl->getModeIdx()==2) {
 				// Confirm new value by calling set 
 				// Remove blinking attribute
-				editing = false; 
+				htmCtrl->setModeIdx(1);
 			} else {
-				editing = true;
+				htmCtrl->setModeIdx(2);
 			}
 		}
 		print(ctrlwin);
@@ -266,7 +274,7 @@ public:
 				const auto& pi = std::static_pointer_cast<ParamItem>(mi);
 				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
 				x += 3;
-				if(editing) 
+				if(htmCtrl->getModeIdx()==2) 
 					wattron(ctrlwin, A_BLINK);
 				mvwprintw(ctrlwin,y,x,"%s",pi->getValue());	
 				wattroff(ctrlwin, A_BLINK);
@@ -274,7 +282,7 @@ public:
 			       const auto& si = std::static_pointer_cast<SelectItem>(mi);
 				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
 				x += 3;
-				if(editing)
+				if(htmCtrl->getModeIdx()==3)
 					wattron(ctrlwin,A_BLINK);
 				mvwprintw(ctrlwin,y,x,"%s",si->getValue());
 				wattroff(ctrlwin, A_BLINK); 
@@ -290,31 +298,23 @@ private:
 	std::vector<std::shared_ptr<MenuItem>> menuStack; 
 	int selItem;
 	bool collapsed = true;
-	bool editing = false;
 };
 
 class StatusBar {
 public:
-	StatusBar(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl)
-{
-		modes.push_back("INSERT");
-		modes.push_back("SELECT");
-		modeidx = 0;
-	}
+	StatusBar(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {}
 
 	void print(WINDOW *statwin)  {
+		wclear(statwin);
 		int x,y; 
 		x = 3;
 		y = 1;	
 		box(statwin,0,0); 
-		mvwprintw(statwin,y,x,modes.at(modeidx).c_str());
+		mvwprintw(statwin,y,x,htmCtrl->getModeTxt().c_str());
 		x += 7;
-		mvwprintw(statwin,y,x,htmCtrl->getStatus().c_str());
+		mvwprintw(statwin,y,x,htmCtrl->getStatusTxt().c_str());
 		wrefresh(statwin);
 	}	
-	std::vector<std::string> modes;
-	int modeidx;
-				
 private:	
 	std::shared_ptr<HtmController> htmCtrl;
 };

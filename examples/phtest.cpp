@@ -83,18 +83,20 @@ int main(){
 	// Initialize colors
 	init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
-
 				
 	while(1) {
 		// User Input
 		while(1) { 
 			int key = getch();
 			if(key == ERR) break;
-			if (key == KEY_F(2)) { // Switch to select mode
-				stBr.modeidx = 1;
+			if (key == KEY_F(2)) {
+				htmCtrl->setModeIdx(1);		// F2: Switch to select mode
+				ctrlBr.collapse(win[1]);
+			} else if(key == KEY_F(3)) {
+				htmCtrl->setModeIdx(0);		// F3: Switch to insert mode
 				ctrlBr.collapse(win[1]);
 			}
-		 	if(stBr.modeidx ==1) {
+		 	if(htmCtrl->getModeIdx()==1) {
 				switch(key) {
 					case KEY_LEFT:
 						ctrlBr.selLeft(win[1]);	
@@ -118,6 +120,7 @@ int main(){
 						ctrlBr.enter(win[1]);
 						break;
 					default:
+						htmCtrl->setStatusTxt(std::to_string(key));
 						break;
 					} 
 				}
@@ -130,7 +133,6 @@ int main(){
 
 		// Update status and control bar
 		ctrlBr.print(win[1]);	
-		htmCtrl->setStatus(" Index = " + std::to_string(i));
 		stBr.print(win[2]);		
 		cntPn.print(win[3],sdr);
 
