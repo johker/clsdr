@@ -201,8 +201,7 @@ public:
 			si->nextValue();
 		} else {
 			htmCtrl->setModeIdx(1);
-			selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
-			selItem = (selItem == menuStack.back()->children.size()-1) ? selItem = 0 : selItem+1;
+			selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 			menuStack.back()->selChild = selItem;
 		}
 		print(ctrlwin);
@@ -282,7 +281,7 @@ public:
 			       const auto& si = std::static_pointer_cast<SelectItem>(mi);
 				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
 				x += 3;
-				if(htmCtrl->getModeIdx()==3)
+				if(htmCtrl->getModeIdx()==2)
 					wattron(ctrlwin,A_BLINK);
 				mvwprintw(ctrlwin,y,x,"%s",si->getValue());
 				wattroff(ctrlwin, A_BLINK); 
