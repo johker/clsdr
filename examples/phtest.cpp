@@ -96,6 +96,11 @@ int main(){
 				htmCtrl->setModeIdx(0);		// F3: Switch to insert mode
 				ctrlBr.collapse(win[1]);
 			}
+			if(htmCtrl->getModeIdx()==2) {		// Editing mode
+				if(key >= 47 && key <= 57) {
+					//ctrlBr.numberEntry
+				}
+			}
 		 	if(htmCtrl->getModeIdx()==1 || htmCtrl->getModeIdx()==2) {
 				switch(key) {
 					case KEY_LEFT:
