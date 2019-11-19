@@ -187,6 +187,7 @@ public:
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			si->prevValue();
 		} else {
+			keyInput.str(std::string());	// Clear keyboard input
 			htmCtrl->setModeIdx(1);
 			selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 			menuStack.back()->selChild = selItem;
@@ -200,7 +201,8 @@ public:
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			si->nextValue();
 		} else {
-			htmCtrl->setModeIdx(1);
+			keyInput.str(std::string());	// Clear keyboard input
+			htmCtrl->setModeIdx(1);	
 			selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 			menuStack.back()->selChild = selItem;
 		}
@@ -214,6 +216,8 @@ public:
 		} else {
 			collapsed = true;
 		}
+		keyInput.str(std::string());	// Clear keyboard input
+		htmCtrl->setModeIdx(1);
 		print(ctrlwin);
 	}
 
@@ -229,15 +233,24 @@ public:
 		print(ctrlwin);
 	}
 
+	void numEntry(WINDOW *ctrlwin, int key) {
+		if(key == 46 && keyInput.str().find('.') != std::string::npos) {
+			return; 		// Dont allow multiple dots		
+		}
+		keyInput << std::string(1, char(key));
+		print(ctrlwin);
+	}
+
 	void enter(WINDOW *ctrlwin) {
 		if(collapsed || !menuStack.back()->isLeaf) { 
 			selRight(ctrlwin);
 		} else {
 			const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
 			if(htmCtrl->getModeIdx()==2) {
-				// Confirm new value by calling set 
-				// Remove blinking attribute
-				htmCtrl->setModeIdx(1);
+				// TODO Check with regex if entry is correct
+				// TODO Confirm new value by calling set 
+				keyInput.str(std::string());	// Clear keyboard input
+				htmCtrl->setModeIdx(1);		// Swtich to select mode
 			} else {
 				htmCtrl->setModeIdx(2);
 			}
@@ -269,17 +282,22 @@ public:
 			mvwprintw(ctrlwin,y,x,"%s",mi->name);
 			x += strlen(mi->name)+1;
 			wattroff(ctrlwin,COLOR_PAIR(1));
-			if(mi->type == 1) {
+			if(mi->type == 1) {	// Numerical entry 
 				const auto& pi = std::static_pointer_cast<ParamItem>(mi);
-				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
+				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 				x += 3;
-				if(htmCtrl->getModeIdx()==2) 
+				if(htmCtrl->getModeIdx()==2) {
 					wattron(ctrlwin, A_BLINK);
-				mvwprintw(ctrlwin,y,x,"%s",pi->getValue());	
+				}
+				if(htmCtrl->getModeIdx()==2 && keyInput.str().size() > 0) {
+					mvwprintw(ctrlwin,y,x,"%s",keyInput.str().c_str());
+				}else {	
+					mvwprintw(ctrlwin,y,x,"%s",pi->getValue());	
+				}
 				wattroff(ctrlwin, A_BLINK);
-			} else if(mi->type == 2) {
+			} else if(mi->type == 2) {	// Selection 
 			       const auto& si = std::static_pointer_cast<SelectItem>(mi);
-				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);	// Add parameter separator
+				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 				x += 3;
 				if(htmCtrl->getModeIdx()==2)
 					wattron(ctrlwin,A_BLINK);
@@ -297,6 +315,7 @@ private:
 	std::vector<std::shared_ptr<MenuItem>> menuStack; 
 	int selItem;
 	bool collapsed = true;
+	std::stringstream keyInput; 
 };
 
 class StatusBar {

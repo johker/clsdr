@@ -97,9 +97,9 @@ int main(){
 				ctrlBr.collapse(win[1]);
 			}
 			if(htmCtrl->getModeIdx()==2) {		// Editing mode
-				if(key >= 47 && key <= 57) {
-					//ctrlBr.numberEntry
-				}
+				if(key== 46 || key >= 47 && key <= 57) {
+					ctrlBr.numEntry(win[1],key);
+				}				
 			}
 		 	if(htmCtrl->getModeIdx()==1 || htmCtrl->getModeIdx()==2) {
 				switch(key) {
