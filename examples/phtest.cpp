@@ -17,11 +17,6 @@
 // NORMAL mode: Commands to select view, exit program etc.
 // Input should be decoupled from HTM output so a different sensor can be used easily
 
-#define KEY_LINE_FEED 0x0A
-#define KEY_CARRIAGE_RETURN 0x0D
-
-//const std::string ACTIVE{"\u25A0"};
-
 int updateScreen(WINDOW **win, const std::shared_ptr<ph::HtmController>& htmCtrl); 
 void initNcurses();
 
@@ -97,7 +92,7 @@ int main(){
 				ctrlBr.collapse(win[1]);
 			}
 			if(htmCtrl->getModeIdx()==2) {		// Editing mode
-				if(key== 46 || key >= 47 && key <= 57) {
+				if(key== KEY_DOT || key == KEY_BACKSPACE || key >= KEY_ZERO && key <= KEY_NINE) {
 					ctrlBr.numEntry(win[1],key);
 				}				
 			}

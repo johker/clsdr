@@ -14,6 +14,12 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
+#define KEY_LINE_FEED 0x0A
+#define KEY_CARRIAGE_RETURN 0x0D
+#define KEY_ZERO 0x2F
+#define KEY_NINE 0x39
+#define KEY_DOT 0x2E
+
 namespace ph {
 
 constexpr unsigned int hash(const char *s, int off = 0) {                        
@@ -187,7 +193,7 @@ public:
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			si->prevValue();
 		} else {
-			keyInput.str(std::string());	// Clear keyboard input
+			keyInput = "";		// Clear keyboard input
 			htmCtrl->setModeIdx(1);
 			selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 			menuStack.back()->selChild = selItem;
@@ -201,7 +207,7 @@ public:
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			si->nextValue();
 		} else {
-			keyInput.str(std::string());	// Clear keyboard input
+			keyInput = "";		// Clear keyboard input
 			htmCtrl->setModeIdx(1);	
 			selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 			menuStack.back()->selChild = selItem;
@@ -216,7 +222,7 @@ public:
 		} else {
 			collapsed = true;
 		}
-		keyInput.str(std::string());	// Clear keyboard input
+		keyInput = "";		// Clear keyboard input
 		htmCtrl->setModeIdx(1);
 		print(ctrlwin);
 	}
@@ -234,10 +240,15 @@ public:
 	}
 
 	void numEntry(WINDOW *ctrlwin, int key) {
-		if(key == 46 && keyInput.str().find('.') != std::string::npos) {
+		if(key == KEY_DOT && keyInput.find('.') != std::string::npos) {
 			return; 		// Dont allow multiple dots		
-		}
-		keyInput << std::string(1, char(key));
+		} 
+		if(key == KEY_BACKSPACE) {
+			// TODO Fix this branch
+			keyInput.pop_back();
+		} else {
+			keyInput.append(std::string(1, char(key)));
+		}	
 		print(ctrlwin);
 	}
 
@@ -249,7 +260,7 @@ public:
 			if(htmCtrl->getModeIdx()==2) {
 				// TODO Check with regex if entry is correct
 				// TODO Confirm new value by calling set 
-				keyInput.str(std::string());	// Clear keyboard input
+				keyInput = "";			// Clear keyboard input
 				htmCtrl->setModeIdx(1);		// Swtich to select mode
 			} else {
 				htmCtrl->setModeIdx(2);
@@ -289,8 +300,8 @@ public:
 				if(htmCtrl->getModeIdx()==2) {
 					wattron(ctrlwin, A_BLINK);
 				}
-				if(htmCtrl->getModeIdx()==2 && keyInput.str().size() > 0) {
-					mvwprintw(ctrlwin,y,x,"%s",keyInput.str().c_str());
+				if(htmCtrl->getModeIdx()==2 && keyInput.size() > 0) {
+					mvwprintw(ctrlwin,y,x,"%s",keyInput.c_str());
 				}else {	
 					mvwprintw(ctrlwin,y,x,"%s",pi->getValue());	
 				}
@@ -315,7 +326,7 @@ private:
 	std::vector<std::shared_ptr<MenuItem>> menuStack; 
 	int selItem;
 	bool collapsed = true;
-	std::stringstream keyInput; 
+	std::string keyInput; 
 };
 
 class StatusBar {
