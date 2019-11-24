@@ -45,14 +45,19 @@ int main(){
 	
 	// HTM 
 	size_t numcat = 2;
-	size_t enclen = 4;
+	size_t encLen = 4;
+	size_t actBits = 1;
 	size_t phorizon = 10; 
+	size_t min = 0; 
+	size_t max = 10; 
 
-	th::CategoryEncoder encoder(numcat, enclen);
+	th::ScalarEncoder scalarEncoder(min, max, encLen, actBits);
+	th::CategoryEncoder categoryEncoder(numcat, encLen);
 	th::TemporalMemory tm({numcat*4}, 6);
 	
 	// Initialize controller
-	std::shared_ptr<ph::HtmController> htmCtrl = std::make_shared<ph::HtmController>(encoder);
+	std::shared_ptr<ph::HtmController> htmCtrl = std::make_shared<ph::HtmController>();
+	htmCtrl->setScalarEncoder(&scalarEncoder);
 	
 	// Get initial screen dimensions
 	getmaxyx(stdscr,avrows,avcols);	
@@ -85,18 +90,18 @@ int main(){
 			int key = getch();
 			if(key == ERR) break;
 			if (key == KEY_F(2)) {
-				htmCtrl->setModeIdx(SELECT);		// F2: Switch to select mode
+				htmCtrl->setMode(ph::SELECT);		// F2: Switch to select mode
 				ctrlBr.collapse(win[1]);
 			} else if(key == KEY_F(3)) {
-				htmCtrl->setModeIdx(INSERT);		// F3: Switch to insert mode
+				htmCtrl->setMode(ph::INSERT);		// F3: Switch to insert mode
 				ctrlBr.collapse(win[1]);
 			}
-			if(htmCtrl->getModeIdx()==EDIT) {		
+			if(htmCtrl->getMode()==ph::EDIT) {		
 				if(key== KEY_DOT || key == KEY_BCKSPACE || key >= KEY_ZERO && key <= KEY_NINE) {
 					ctrlBr.numEntry(win[1],key);
 				}				
 			}
-		 	if(htmCtrl->getModeIdx() == SELECT || htmCtrl->getModeIdx() == EDIT) {
+		 	if(htmCtrl->getMode() == ph::SELECT || htmCtrl->getMode() == ph::EDIT) {
 				switch(key) {
 					case KEY_LEFT:
 						ctrlBr.selLeft(win[1]);	
@@ -126,7 +131,7 @@ int main(){
 				}
 		}
 		// HTM Update 
-		auto sdr = encoder.encode(i%numcat);
+		auto sdr = scalarEncoder.encode(i%numcat);
 
 		// Update screen dimension
 		auto updt = updateScreen(win, htmCtrl);

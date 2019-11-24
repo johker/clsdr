@@ -21,15 +21,30 @@
 #define KEY_DOT 0x2E
 #define KEY_BCKSPACE 0x7F
 
-#define INSERT 0
-#define SELECT 1
-#define EDIT 2
+//#define INSERT 0
+//#define SELECT 1
+//#define EDIT 2
+
+//#define SCALAR 1
+//#define CATEGORY 2
 
 namespace ph {
 
 constexpr unsigned int hash(const char *s, int off = 0) {                        
 	return !s[off] ? 5381 : (hash(s, off+1)*33) ^ s[off];                           
 }        
+
+enum Mode {
+	INSERT,
+	SELECT,
+	EDIT
+};
+
+enum EncoderType {
+	SCALAR,
+	CATEGORY
+};
+
 
 constexpr char SYM_ACTIVE[]{"\u25A0"};		// Active Minicolumn 
 constexpr char SYM_INACTIVE[]{"\u25A1"};	// Inactive minicolumn
@@ -48,23 +63,20 @@ constexpr char KEY_LAYER[]{"LAYER"};		// Layer
 constexpr char KEY_PARAMS[]{"PARMS"};		// Params
 constexpr char KEY_INPUT[]{"INPUT"};		// Input
 constexpr char KEY_SPOOL[]{"SPOOL"};		// Spatial Pooler
+constexpr char KEY_MINVAL[]{"MINVAL"};		// Minimal encoded value
+constexpr char KEY_MAXVAL[]{"MAXVAL"};		// Maximal encoded value
 constexpr char KEY_SDRLEN[]{"SDRLEN"};		// SDR Length
-constexpr char KEY_ACTDEN[]{"ACTDEN"};		// Active Density
+constexpr char KEY_ACTBTS[]{"ACTBTS"};		// Active Bits 
 
 class HtmController {
 public: 
-	HtmController(th::CategoryEncoder& argCategoryEncoder) : categoryEncoder(argCategoryEncoder){};
+	HtmController(){};
 	// Screen params
 	int avrows;
 	int avcols; 
 	int avrowstmo; 
 	int avcolstmo; 
 
-	// Active Model
-	// TODO Dynamically switch between different encoders while keeping same parameter keys
-
-	// Models
-	th::CategoryEncoder& categoryEncoder; 
 
 	size_t sdrSize = 8; 
 	size_t ncols = 8;	
@@ -73,28 +85,61 @@ public:
 	const char* getValue(const char* key) {
 		const char * value;
 		switch(hash(key)) {
-			case hash(KEY_SDRLEN):
-				value = std::to_string(categoryEncoder.sdrLength()).c_str();
+			case hash(KEY_MINVAL):
+				value = std::to_string(scalarEncoder->minimumValue()).c_str();
 			break;
-			case hash(KEY_ACTDEN):
-				value = std::to_string(categoryEncoder.encodeLength()).c_str();
+			case hash(KEY_MAXVAL):
+				value = std::to_string(scalarEncoder->maximumValue()).c_str();
+			break;
+			case hash(KEY_SDRLEN):
+				value = std::to_string(scalarEncoder->sdrLength()).c_str();
+			break;
+			case hash(KEY_ACTBTS):
+				value = std::to_string(scalarEncoder->encodeLength()).c_str();
 			break;
 		}		
 		return value;
 	}
-	void setValue(const char* key, double value) {
+	void setValue(const char* key, float value) {
 		// TODO: Set value
-		//switch()
+		switch(hash(key)) {
+			case hash(KEY_MINVAL):
+				scalarEncoder->setMinimumValue((size_t) value);
+			break;
+			case hash(KEY_MAXVAL):
+				scalarEncoder->setMaximumValue((size_t) value);
+			break;
+			case hash(KEY_SDRLEN):
+				scalarEncoder->setSDRLength((size_t) value);
+			break;
+			case hash(KEY_ACTBTS):
+				scalarEncoder->setEncodeLength((size_t) value);
+			break;
+		}
 	}
 	void setStatusTxt(std::string argStatusTxt){statusTxt = argStatusTxt;}
-	void setModeIdx(size_t argModeIdx){modeIdx = argModeIdx;}
+	void setMode(Mode argMode){mode = argMode;}
+	void setScalarEncoder(th::ScalarEncoder* argScalarEncoder) { scalarEncoder = argScalarEncoder;}
+	void setCategoryEncoder(th::CategoryEncoder* argCategoryEncoder) { categoryEncoder = argCategoryEncoder;}
+	void setEncoderType(EncoderType argEncoderType){encoderType = argEncoderType;}
 	std::string getStatusTxt() {return statusTxt;}
-	size_t getModeIdx() {return modeIdx;}
-	std::string getModeTxt() {return modes.at(modeIdx);}
+	Mode getMode() {return mode;}
+	std::string getModeTxt() {return modeLabels.at(mode);}
+	EncoderType getEncoderType() {return encoderType;}
+
 private: 
+	// Active Model
+	// TODO Dynamically switch between different encoders 
+	// Parameter Selection Menu should change
+
+	// Models
+	// TODO Make Vector to allow multiple
+	th::CategoryEncoder* categoryEncoder; 
+	th::ScalarEncoder* scalarEncoder;
 	std::string statusTxt;
-	std::vector<std::string> modes{MODE_INSERT,MODE_SELECT,MODE_EDIT};
-	size_t modeIdx = INSERT;
+	std::vector<std::string> modeLabels{MODE_INSERT,MODE_SELECT,MODE_EDIT};
+	Mode mode = INSERT;
+	EncoderType encoderType = SCALAR;
 };
 
 class Item {
@@ -178,16 +223,18 @@ private:
 class ControlBar {
 public:	
 	ControlBar(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {
-		addMenu();
+		setMenu();
 	}
 
-	void addMenu() {
+	void setMenu() {
 		auto root = MenuItem::create(KEY_MENU, std::shared_ptr<MenuItem>());
 		menuStack.push_back(root);
 	       	auto view = MenuItem::create(KEY_VIEW, root);
 		auto params = MenuItem::create(KEY_PARAMS, root);
+		// TODO
+		// if(htmCtrl->getEncoderType() == SCALAR)
 		ParamItem::create(KEY_SDRLEN, params, htmCtrl);
-		ParamItem::create(KEY_ACTDEN, params, htmCtrl);
+		ParamItem::create(KEY_ACTBTS, params, htmCtrl);
 		std::vector<std::string> options = {KEY_INPUT, KEY_SPOOL};
 		SelectItem::create(KEY_LAYER, view, htmCtrl, options);
 		selItem = 0;
@@ -195,12 +242,12 @@ public:
 
 	void selUp(WINDOW *ctrlwin) {
 		auto& mi = menuStack.back()->children.at(selItem);
-		if(htmCtrl->getModeIdx()== EDIT && mi->type==2) {
+		if(htmCtrl->getMode()== EDIT && mi->type==2) {
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			si->prevValue();
 		} else {
 			keyInput = "";		// Clear keyboard input
-			htmCtrl->setModeIdx(SELECT);
+			htmCtrl->setMode(SELECT);
 			selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 			menuStack.back()->selChild = selItem;
 		}
@@ -209,12 +256,12 @@ public:
 
 	void selDown(WINDOW *ctrlwin) {
 		auto& mi = menuStack.back()->children.at(selItem);
-		if(htmCtrl->getModeIdx()== EDIT && mi->type==2) {
+		if(htmCtrl->getMode()== EDIT && mi->type==2) {
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			si->nextValue();
 		} else {
 			keyInput = "";		// Clear keyboard input
-			htmCtrl->setModeIdx(SELECT);	
+			htmCtrl->setMode(SELECT);	
 			selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 			menuStack.back()->selChild = selItem;
 		}
@@ -229,7 +276,7 @@ public:
 			collapsed = true;
 		}
 		keyInput = "";		// Clear keyboard input
-		htmCtrl->setModeIdx(SELECT);
+		htmCtrl->setMode(SELECT);
 		print(ctrlwin);
 	}
 
@@ -264,14 +311,14 @@ public:
 			selRight(ctrlwin);
 		} else {
 			const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
-			if(htmCtrl->getModeIdx()== EDIT) {
+			if(htmCtrl->getMode()== EDIT) {
 				// TODO Confirm new value by calling set 
 
 				keyInput = "";			
-				htmCtrl->setModeIdx(SELECT);
+				htmCtrl->setMode(SELECT);
 			} else {
 				keyInput = pi->getValue();	
-				htmCtrl->setModeIdx(EDIT);
+				htmCtrl->setMode(EDIT);
 			}
 		}
 		print(ctrlwin);
@@ -305,7 +352,7 @@ public:
 				const auto& pi = std::static_pointer_cast<ParamItem>(mi);
 				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 				x += 3;
-				if(htmCtrl->getModeIdx()== EDIT) {
+				if(htmCtrl->getMode()== EDIT) {
 					wattron(ctrlwin, A_BLINK);
 					if(keyInput.size() > 0) {
 						mvwprintw(ctrlwin,y,x,"%s",keyInput.c_str());
@@ -318,7 +365,7 @@ public:
 			       const auto& si = std::static_pointer_cast<SelectItem>(mi);
 				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 				x += 3;
-				if(htmCtrl->getModeIdx()== EDIT) {
+				if(htmCtrl->getMode()== EDIT) {
 					wattron(ctrlwin,A_BLINK);
 				}
 				mvwprintw(ctrlwin,y,x,"%s",si->getValue());
