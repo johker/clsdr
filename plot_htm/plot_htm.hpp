@@ -21,6 +21,10 @@
 #define KEY_DOT 0x2E
 #define KEY_BCKSPACE 0x7F
 
+#define INSERT 0
+#define SELECT 1
+#define EDIT 2
+
 namespace ph {
 
 constexpr unsigned int hash(const char *s, int off = 0) {                        
@@ -80,6 +84,7 @@ public:
 	}
 	void setValue(const char* key, double value) {
 		// TODO: Set value
+		//switch()
 	}
 	void setStatusTxt(std::string argStatusTxt){statusTxt = argStatusTxt;}
 	void setModeIdx(size_t argModeIdx){modeIdx = argModeIdx;}
@@ -89,7 +94,7 @@ public:
 private: 
 	std::string statusTxt;
 	std::vector<std::string> modes{MODE_INSERT,MODE_SELECT,MODE_EDIT};
-	size_t modeIdx = 0;
+	size_t modeIdx = INSERT;
 };
 
 class Item {
@@ -190,12 +195,12 @@ public:
 
 	void selUp(WINDOW *ctrlwin) {
 		auto& mi = menuStack.back()->children.at(selItem);
-		if(htmCtrl->getModeIdx()==2 && mi->type==2) {
+		if(htmCtrl->getModeIdx()== EDIT && mi->type==2) {
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			si->prevValue();
 		} else {
 			keyInput = "";		// Clear keyboard input
-			htmCtrl->setModeIdx(1);
+			htmCtrl->setModeIdx(SELECT);
 			selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 			menuStack.back()->selChild = selItem;
 		}
@@ -204,12 +209,12 @@ public:
 
 	void selDown(WINDOW *ctrlwin) {
 		auto& mi = menuStack.back()->children.at(selItem);
-		if(htmCtrl->getModeIdx()==2 && mi->type==2) {
+		if(htmCtrl->getModeIdx()== EDIT && mi->type==2) {
 			const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			si->nextValue();
 		} else {
 			keyInput = "";		// Clear keyboard input
-			htmCtrl->setModeIdx(1);	
+			htmCtrl->setModeIdx(SELECT);	
 			selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 			menuStack.back()->selChild = selItem;
 		}
@@ -224,7 +229,7 @@ public:
 			collapsed = true;
 		}
 		keyInput = "";		// Clear keyboard input
-		htmCtrl->setModeIdx(1);
+		htmCtrl->setModeIdx(SELECT);
 		print(ctrlwin);
 	}
 
@@ -245,12 +250,12 @@ public:
 			return; 		// Dont allow multiple dots		
 		} 
 		if(key == KEY_BCKSPACE) {
-			// TODO Fix this branch
-			keyInput.pop_back();
+			if(keyInput.size()>0) {
+				keyInput.pop_back();
+			}
 		} else {
 			keyInput.append(std::string(1, char(key)));
 		}	
-		// htmCtrl->setStatusTxt("Key Backspace = " + std::to_string(KEY_BACKSPACE));
 		print(ctrlwin);
 	}
 
@@ -259,13 +264,14 @@ public:
 			selRight(ctrlwin);
 		} else {
 			const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
-			if(htmCtrl->getModeIdx()==2) {
-				// TODO Check with regex if entry is correct
+			if(htmCtrl->getModeIdx()== EDIT) {
 				// TODO Confirm new value by calling set 
-				keyInput = "";			// Clear keyboard input
-				htmCtrl->setModeIdx(1);		// Swtich to select mode
+
+				keyInput = "";			
+				htmCtrl->setModeIdx(SELECT);
 			} else {
-				htmCtrl->setModeIdx(2);
+				keyInput = pi->getValue();	
+				htmCtrl->setModeIdx(EDIT);
 			}
 		}
 		print(ctrlwin);
@@ -299,12 +305,12 @@ public:
 				const auto& pi = std::static_pointer_cast<ParamItem>(mi);
 				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 				x += 3;
-				if(htmCtrl->getModeIdx()==2) {
+				if(htmCtrl->getModeIdx()== EDIT) {
 					wattron(ctrlwin, A_BLINK);
-				}
-				if(htmCtrl->getModeIdx()==2 && keyInput.size() > 0) {
-					mvwprintw(ctrlwin,y,x,"%s",keyInput.c_str());
-				}else {	
+					if(keyInput.size() > 0) {
+						mvwprintw(ctrlwin,y,x,"%s",keyInput.c_str());
+				       }
+				} else {	
 					mvwprintw(ctrlwin,y,x,"%s",pi->getValue());	
 				}
 				wattroff(ctrlwin, A_BLINK);
@@ -312,8 +318,9 @@ public:
 			       const auto& si = std::static_pointer_cast<SelectItem>(mi);
 				mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 				x += 3;
-				if(htmCtrl->getModeIdx()==2)
+				if(htmCtrl->getModeIdx()== EDIT) {
 					wattron(ctrlwin,A_BLINK);
+				}
 				mvwprintw(ctrlwin,y,x,"%s",si->getValue());
 				wattroff(ctrlwin, A_BLINK); 
 			} else {

@@ -85,18 +85,18 @@ int main(){
 			int key = getch();
 			if(key == ERR) break;
 			if (key == KEY_F(2)) {
-				htmCtrl->setModeIdx(1);		// F2: Switch to select mode
+				htmCtrl->setModeIdx(SELECT);		// F2: Switch to select mode
 				ctrlBr.collapse(win[1]);
 			} else if(key == KEY_F(3)) {
-				htmCtrl->setModeIdx(0);		// F3: Switch to insert mode
+				htmCtrl->setModeIdx(INSERT);		// F3: Switch to insert mode
 				ctrlBr.collapse(win[1]);
 			}
-			if(htmCtrl->getModeIdx()==2) {		// Editing mode
+			if(htmCtrl->getModeIdx()==EDIT) {		
 				if(key== KEY_DOT || key == KEY_BCKSPACE || key >= KEY_ZERO && key <= KEY_NINE) {
 					ctrlBr.numEntry(win[1],key);
 				}				
 			}
-		 	if(htmCtrl->getModeIdx()==1 || htmCtrl->getModeIdx()==2) {
+		 	if(htmCtrl->getModeIdx() == SELECT || htmCtrl->getModeIdx() == EDIT) {
 				switch(key) {
 					case KEY_LEFT:
 						ctrlBr.selLeft(win[1]);	
