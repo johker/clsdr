@@ -92,7 +92,7 @@ int main(){
 				ctrlBr.collapse(win[1]);
 			}
 			if(htmCtrl->getModeIdx()==2) {		// Editing mode
-				if(key== KEY_DOT || key == KEY_BACKSPACE || key >= KEY_ZERO && key <= KEY_NINE) {
+				if(key== KEY_DOT || key == KEY_BCKSPACE || key >= KEY_ZERO && key <= KEY_NINE) {
 					ctrlBr.numEntry(win[1],key);
 				}				
 			}

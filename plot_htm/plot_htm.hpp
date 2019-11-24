@@ -19,6 +19,7 @@
 #define KEY_ZERO 0x2F
 #define KEY_NINE 0x39
 #define KEY_DOT 0x2E
+#define KEY_BCKSPACE 0x7F
 
 namespace ph {
 
@@ -243,12 +244,13 @@ public:
 		if(key == KEY_DOT && keyInput.find('.') != std::string::npos) {
 			return; 		// Dont allow multiple dots		
 		} 
-		if(key == KEY_BACKSPACE) {
+		if(key == KEY_BCKSPACE) {
 			// TODO Fix this branch
 			keyInput.pop_back();
 		} else {
 			keyInput.append(std::string(1, char(key)));
 		}	
+		// htmCtrl->setStatusTxt("Key Backspace = " + std::to_string(KEY_BACKSPACE));
 		print(ctrlwin);
 	}
 
