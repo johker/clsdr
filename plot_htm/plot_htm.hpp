@@ -35,9 +35,9 @@ constexpr unsigned int hash(const char *s, int off = 0) {
 }        
 
 enum Mode {
-	INSERT,
-	SELECT,
-	EDIT
+	INSERT = 0,
+	SELECT = 1,
+	EDIT = 2
 };
 
 enum EncoderType {
