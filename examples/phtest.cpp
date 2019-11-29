@@ -45,11 +45,11 @@ int main(){
 	
 	// HTM 
 	size_t numcat = 2;
-	size_t encLen = 4;
-	size_t actBits = 1;
+	size_t encLen = 256;
+	size_t actBits = 2;
 	size_t phorizon = 10; 
 	size_t min = 0; 
-	size_t max = 10; 
+	size_t max = 100; 
 
 	th::ScalarEncoder scalarEncoder(min, max, encLen, actBits);
 	th::CategoryEncoder categoryEncoder(numcat, encLen);
@@ -131,7 +131,7 @@ int main(){
 				}
 		}
 		// HTM Update 
-		auto sdr = scalarEncoder.encode(i%numcat);
+		auto sdr = scalarEncoder.encode(i%max);
 
 		// Update screen dimension
 		auto updt = updateScreen(win, htmCtrl);

@@ -63,6 +63,7 @@ constexpr char KEY_LAYER[]{"LAYER"};		// Layer
 constexpr char KEY_PARAMS[]{"PARMS"};		// Params
 constexpr char KEY_INPUT[]{"INPUT"};		// Input
 constexpr char KEY_SPOOL[]{"SPOOL"};		// Spatial Pooler
+constexpr char KEY_NUMCOL[]{"NUMCOL"};		// Displayed number of Columns 
 constexpr char KEY_MINVAL[]{"MINVAL"};		// Minimal encoded value
 constexpr char KEY_MAXVAL[]{"MAXVAL"};		// Maximal encoded value
 constexpr char KEY_SDRLEN[]{"SDRLEN"};		// SDR Length
@@ -79,7 +80,7 @@ public:
 
 
 	size_t sdrSize = 8; 
-	size_t ncols = 8;	
+	size_t ncols = 32;	
 	int layer=0; 
 
 	const char* getValue(const char* key) {
@@ -96,6 +97,9 @@ public:
 			break;
 			case hash(KEY_ACTBTS):
 				value = std::to_string(scalarEncoder->encodeLength()).c_str();
+			break;
+			case hash(KEY_NUMCOL):
+				value = std::to_string(ncols).c_str();
 			break;
 		}		
 		return value;
@@ -114,6 +118,9 @@ public:
 			break;
 			case hash(KEY_ACTBTS):
 				scalarEncoder->setEncodeLength((size_t) value);
+			break;
+			case hash(KEY_NUMCOL):
+				ncols = (size_t) value;
 			break;
 		}
 	}
@@ -223,21 +230,31 @@ private:
 class ControlBar {
 public:	
 	ControlBar(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {
-		setMenu();
+		addMenu();
 	}
 
-	void setMenu() {
+	void addMenu() {
 		auto root = MenuItem::create(KEY_MENU, std::shared_ptr<MenuItem>());
 		menuStack.push_back(root);
-	       	auto view = MenuItem::create(KEY_VIEW, root);
+		// PARAMS
 		auto params = MenuItem::create(KEY_PARAMS, root);
-		// TODO
-		// if(htmCtrl->getEncoderType() == SCALAR)
-		ParamItem::create(KEY_SDRLEN, params, htmCtrl);
-		ParamItem::create(KEY_ACTBTS, params, htmCtrl);
+		addParamsMenu(params);
+		// VIEW
+		auto view = MenuItem::create(KEY_VIEW, root);
 		std::vector<std::string> options = {KEY_INPUT, KEY_SPOOL};
 		SelectItem::create(KEY_LAYER, view, htmCtrl, options);
+		ParamItem::create(KEY_NUMCOL, view, htmCtrl);
 		selItem = 0;
+	}
+	void addParamsMenu(std::shared_ptr<MenuItem> params) {
+		if(htmCtrl->getEncoderType() == SCALAR) {
+			ParamItem::create(KEY_MINVAL, params, htmCtrl);
+			ParamItem::create(KEY_MAXVAL, params, htmCtrl);
+			ParamItem::create(KEY_SDRLEN, params, htmCtrl);
+			ParamItem::create(KEY_ACTBTS, params, htmCtrl);				
+		} 
+		// TODO: Add more encoder menues
+		
 	}
 
 	void selUp(WINDOW *ctrlwin) {
@@ -312,8 +329,9 @@ public:
 		} else {
 			const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
 			if(htmCtrl->getMode()== EDIT) {
-				// TODO Confirm new value by calling set 
-
+				if(keyInput.size()>0) {
+					htmCtrl->setValue(pi->name, std::stof(keyInput));
+				}
 				keyInput = "";			
 				htmCtrl->setMode(SELECT);
 			} else {
@@ -413,7 +431,8 @@ public:
 		int xi,yi;
 		int xoff,yoff;
 		int maxrows, maxcols;
-
+		
+		wclear(contwin);
 		// Offset depending on HTM topology
 		// We need NCOLS << 1 for whitespaces
 		maxcols = htmCtrl->avcols-2 < htmCtrl->ncols << 1 ? htmCtrl->avcols-2 : htmCtrl->ncols << 1;   	
