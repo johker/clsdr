@@ -6,23 +6,14 @@ include_directories( ~/miniconda3/include)
 include_directories( ~/workspace/tiny_htm)
 include_directories( ~/workspace/plot_htm)
 
-project(phtest)
-find_package(xtl REQUIRED)
-find_package(xtensor REQUIRED)
-find_package(Curses REQUIRED)
-find_library(panel REQUIRED)
-add_executable(phtest phtest.cpp)
-target_link_libraries(phtest panel ${CURSES_LIBRARY})
-
 project(dhtm)
 find_package(xtl REQUIRED)
 find_package(xtensor REQUIRED)
 find_package(Curses REQUIRED)
 find_library(panel REQUIRED)
 file(GLOB SOURCES
-dhtm/*.hpp
-dhtm/*.cpp
+	dhtm/*.hpp
+	dhtm/*.cpp
 )
-add_executable(dhtm ${SOURCES})
-add_executable(dhtm main.cpp)
+add_executable(dhtm main.cpp ${SOURCES})
 target_link_libraries(dhtm ${CURSES_LIBRARY})
