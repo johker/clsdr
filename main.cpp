@@ -1,5 +1,6 @@
 #include "../tiny_htm/tiny_htm/tiny_htm.hpp"
 #include "dhtm/terminalOutput.hpp"
+#include "dhtm/htmController.hpp"
 #include <iostream>
 #include <string>
 #include <xtensor/xarray.hpp>

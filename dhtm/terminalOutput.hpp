@@ -8,8 +8,10 @@
 #include <algorithm>
 #include <xtensor/xarray.hpp>
 #include <ncursesw/ncurses.h>
-#include "../../tiny_htm/tiny_htm/tiny_htm.hpp"
 #include <locale.h>
+
+#include "../../tiny_htm/tiny_htm/tiny_htm.hpp"
+#include "htmController.hpp"
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
@@ -29,22 +31,6 @@
 //#define CATEGORY 2
 
 namespace ph {
-
-constexpr unsigned int hash(const char *s, int off = 0) {                        
-	return !s[off] ? 5381 : (hash(s, off+1)*33) ^ s[off];                           
-}        
-
-enum Mode {
-	INSERT = 0,
-	SELECT = 1,
-	EDIT = 2
-};
-
-enum EncoderType {
-	SCALAR,
-	CATEGORY
-};
-
 
 constexpr char SYM_ACTIVE[]{"\u25A0"};		// Active Minicolumn 
 constexpr char SYM_INACTIVE[]{"\u25A1"};	// Inactive minicolumn
