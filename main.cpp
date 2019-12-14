@@ -1,6 +1,3 @@
-#include "../tiny_htm/tiny_htm/tiny_htm.hpp"
-#include "dhtm/terminalOutput.hpp"
-#include "dhtm/htmController.hpp"
 #include <iostream>
 #include <string>
 #include <xtensor/xarray.hpp>
@@ -13,12 +10,18 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#include "../tiny_htm/tiny_htm/tiny_htm.hpp"
+
+#include "dhtm/terminalOutput.hpp"
+#include "dhtm/htmController.hpp"
+
+
 // VIM like HTM interface:
 // INSERT mode: Keyboard entries are directly encoded 
 // NORMAL mode: Commands to select view, exit program etc.
 // Input should be decoupled from HTM output so a different sensor can be used easily
 
-int updateScreen(WINDOW **win, const std::shared_ptr<ph::HtmController>& htmCtrl); 
+int updateScreen(WINDOW **win, const std::shared_ptr<dh::HtmController>& htmCtrl); 
 void initNcurses();
 
 int main(){
@@ -57,7 +60,7 @@ int main(){
 	th::TemporalMemory tm({numcat*4}, 6);
 	
 	// Initialize controller
-	std::shared_ptr<ph::HtmController> htmCtrl = std::make_shared<ph::HtmController>();
+	std::shared_ptr<dh::HtmController> htmCtrl = std::make_shared<dh::HtmController>();
 	htmCtrl->setScalarEncoder(&scalarEncoder);
 	
 	// Get initial screen dimensions
@@ -66,9 +69,7 @@ int main(){
 	htmCtrl->avcols = avcols;
 
 	// Initialize view objects
-	ph::ControlBar ctrlBr(htmCtrl); 
-	ph::StatusBar stBr(htmCtrl);
-	ph::ContentPane cntPn(htmCtrl);
+	dh::TerminalOutput terminalOutput(htmCtrl); 
 
 	// Initialize windows
 	win[0] = stdscr;
@@ -91,46 +92,46 @@ int main(){
 			int key = getch();
 			if(key == ERR) break;
 			if (key == KEY_F(2)) {
-				htmCtrl->setMode(ph::SELECT);		// F2: Switch to select mode
-				ctrlBr.collapse(win[1]);
+				htmCtrl->setMode(dh::SELECT);		// F2: Switch to select mode
+				terminalOutput.collapse(win[1]);
 			} else if(key == KEY_F(3)) {
-				htmCtrl->setMode(ph::INSERT);		// F3: Switch to insert mode
-				ctrlBr.collapse(win[1]);
+				htmCtrl->setMode(dh::INSERT);		// F3: Switch to insert mode
+				terminalOutput.collapse(win[1]);
 			}
-			if(htmCtrl->getMode()==ph::EDIT) {		
+			if(htmCtrl->getMode()==dh::EDIT) {		
 				if(key== KEY_DOT || key == KEY_BCKSPACE || key >= KEY_ZERO && key <= KEY_NINE) {
-					ctrlBr.numEntry(win[1],key);
+					terminalOutput.numEntry(win[1],key);
 				}				
 			}
-		 	if(htmCtrl->getMode() == ph::SELECT || htmCtrl->getMode() == ph::EDIT) {
+		 	if(htmCtrl->getMode() == dh::SELECT || htmCtrl->getMode() == dh::EDIT) {
 				switch(key) {
 					case KEY_LEFT:
-						ctrlBr.selLeft(win[1]);	
+						terminalOutput.selLeft(win[1]);	
 						break;
 					case KEY_RIGHT:
-						ctrlBr.selRight(win[1]);
+						terminalOutput.selRight(win[1]);
 						break;
 					case KEY_UP:
-						ctrlBr.selUp(win[1]);
+						terminalOutput.selUp(win[1]);
 						break;
 					case KEY_DOWN:
-						ctrlBr.selDown(win[1]);
+						terminalOutput.selDown(win[1]);
 						break;
 					case KEY_ENTER: 
-						ctrlBr.enter(win[1]);
+						terminalOutput.enter(win[1]);
 						break;
 					case KEY_LINE_FEED: 
-						ctrlBr.enter(win[1]);
+						terminalOutput.enter(win[1]);
 						break;
 					case KEY_CARRIAGE_RETURN: 
-						ctrlBr.enter(win[1]);
+						terminalOutput.enter(win[1]);
 						break;
 					default:
 						htmCtrl->setStatusTxt(std::to_string(key));
 						break;
 					} 
 				}
-			if(htmCtrl->getMode() == ph::INSERT) {
+			if(htmCtrl->getMode() == dh::INSERT) {
 				
 			}
 		}
@@ -141,9 +142,9 @@ int main(){
 		auto updt = updateScreen(win, htmCtrl);
 
 		// Update status and control bar
-		ctrlBr.print(win[1]);	
-		stBr.print(win[2]);		
-		cntPn.print(win[3],sdr);
+		terminalOutput.printControlBar(win[1]);	
+		terminalOutput.printStatusBar(win[2]);		
+		terminalOutput.printContentPane(win[3],sdr);
 
 		i += 1;
 		// TODO Replace for better performing solution
@@ -158,7 +159,7 @@ int main(){
 }
 
 
-int updateScreen(WINDOW **win, const std::shared_ptr<ph::HtmController>& htmCtrl) {
+int updateScreen(WINDOW **win, const std::shared_ptr<dh::HtmController>& htmCtrl) {
 	
 	getmaxyx(win[0],htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
 	if(htmCtrl->avrows != htmCtrl->avrowstmo || htmCtrl->avcols != htmCtrl->avcolstmo) {

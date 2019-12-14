@@ -1,6 +1,8 @@
 #include "terminalOutput.hpp"
 
-TerminalOutput(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {
+namespace dh {
+
+TerminalOutput::TerminalOutput(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {
 	addMenu();
 }
 
@@ -27,7 +29,6 @@ void TerminalOutput::addParamsMenu(std::shared_ptr<MenuItem> params) {
 	// TODO: Add more encoder menues
 	
 }
-
 void TerminalOutput::selUp(WINDOW *ctrlwin) {
 	auto& mi = menuStack.back()->children.at(selItem);
 	if(htmCtrl->getMode()== EDIT && mi->type==2) {
@@ -39,9 +40,8 @@ void TerminalOutput::selUp(WINDOW *ctrlwin) {
 		selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 		menuStack.back()->selChild = selItem;
 	}
-	print(ctrlwin);
+	printControlBar(ctrlwin);
 }
-
 void TerminalOutput::selDown(WINDOW *ctrlwin) {
 	auto& mi = menuStack.back()->children.at(selItem);
 	if(htmCtrl->getMode()== EDIT && mi->type==2) {
@@ -53,9 +53,8 @@ void TerminalOutput::selDown(WINDOW *ctrlwin) {
 		selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 		menuStack.back()->selChild = selItem;
 	}
-	print(ctrlwin);
+	printControlBar(ctrlwin);
 }
-
 void TerminalOutput::selLeft(WINDOW *ctrlwin) {
 	if(menuStack.size()>1) {
 		menuStack.pop_back();
@@ -65,9 +64,8 @@ void TerminalOutput::selLeft(WINDOW *ctrlwin) {
 	}
 	keyInput = "";		// Clear keyboard input
 	htmCtrl->setMode(SELECT);
-	print(ctrlwin);
+	printControlBar(ctrlwin);
 }
-
 void TerminalOutput::selRight(WINDOW *ctrlwin) {
 	if(collapsed) {
 		collapsed = false;
@@ -77,9 +75,8 @@ void TerminalOutput::selRight(WINDOW *ctrlwin) {
 		menuStack.push_back(mi);
 		selItem = 0;
 	}	
-	print(ctrlwin);
+	printControlBar(ctrlwin);
 }
-
 void TerminalOutput::numEntry(WINDOW *ctrlwin, int key) {
 	if(key == KEY_DOT && keyInput.find('.') != std::string::npos) {
 		return; 		// Dont allow multiple dots		
@@ -91,9 +88,8 @@ void TerminalOutput::numEntry(WINDOW *ctrlwin, int key) {
 	} else {
 		keyInput.append(std::string(1, char(key)));
 	}	
-	print(ctrlwin);
+	printControlBar(ctrlwin);
 }
-
 void TerminalOutput::enter(WINDOW *ctrlwin) {
 	if(collapsed || !menuStack.back()->isLeaf) { 
 		selRight(ctrlwin);
@@ -110,15 +106,13 @@ void TerminalOutput::enter(WINDOW *ctrlwin) {
 			htmCtrl->setMode(EDIT);
 		}
 	}
-	print(ctrlwin);
+	printControlBar(ctrlwin);
 }
-
-void Terminal::collapse(WINDOW *ctrlwin) {
+void TerminalOutput::collapse(WINDOW *ctrlwin) {
 	menuStack.resize(1);
 	collapsed = true;
-	print(ctrlwin);
+	printControlBar(ctrlwin);
 }
-
 void TerminalOutput::printControlBar(WINDOW *ctrlwin) 
 {
 	wclear(ctrlwin);
@@ -165,7 +159,6 @@ void TerminalOutput::printControlBar(WINDOW *ctrlwin)
 	}
 	wrefresh(ctrlwin);
 }
-
 void TerminalOutput::printStatusBar(WINDOW *statwin)  {
 	wclear(statwin);
 	int x,y; 
@@ -177,7 +170,6 @@ void TerminalOutput::printStatusBar(WINDOW *statwin)  {
 	mvwprintw(statwin,y,x,htmCtrl->getStatusTxt().c_str());
 	wrefresh(statwin);
 }	
-
 void TerminalOutput::printContentPane(WINDOW *contwin, const xt::xarray<bool> & sdr){
 	int i; 
 	int xi,yi;
@@ -207,4 +199,6 @@ void TerminalOutput::printContentPane(WINDOW *contwin, const xt::xarray<bool> & 
 		}
 	}	
 	wrefresh(contwin);
+}
+
 }

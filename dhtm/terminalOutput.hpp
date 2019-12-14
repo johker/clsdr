@@ -10,7 +10,6 @@
 #include <ncursesw/ncurses.h>
 #include <locale.h>
 
-#include "../../tiny_htm/tiny_htm/tiny_htm.hpp"
 #include "htmController.hpp"
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -23,21 +22,10 @@
 #define KEY_DOT 0x2E
 #define KEY_BCKSPACE 0x7F
 
-//#define INSERT 0
-//#define SELECT 1
-//#define EDIT 2
-
-//#define SCALAR 1
-//#define CATEGORY 2
-
-namespace ph {
+namespace dh {
 
 constexpr char SYM_ACTIVE[]{"\u25A0"};		// Active Minicolumn 
 constexpr char SYM_INACTIVE[]{"\u25A1"};	// Inactive minicolumn
-
-constexpr char MODE_INSERT[]{"INSERT"};		// Insert data
-constexpr char MODE_SELECT[]{"SELECT"};		// Select from menu
-constexpr char MODE_EDIT[]{"EDIT"};		// Edit parameter
 
 constexpr char SEP_MEN[]{"\u25B6"};		// Menu Separator
 constexpr char SEP_SEL[]{"\u25BC"};		// Selection Separator
@@ -139,242 +127,20 @@ public:
 	TerminalOutput(std::shared_ptr<HtmController> argHtmController); 
 
 	void selUp(WINDOW *ctrlwin); 
-	
 	void selDown(WINDOW *ctrlwin); 
-
 	void selLeft(WINDOW *ctrlwin); 
-	
 	void selRight(WINDOW *ctrlwin); 
-
 	void numEntry(WINDOW *ctrlwin, int key); 
-
 	void enter(WINDOW *ctrlwin);
-
 	void collapse(WINDOW *ctrlwin);
-
 	void printControlBar(WINDOW *ctrlwin);
-
 	void printStatusBar(WINDOW *ctrl);
-
 	void printContentPane(WINDOW *ctrlwin, const xt::xarray<bool>& sdr);
 
 private:
 	void addMenu();
-
 	void addParamsMenu(std::shared_ptr<MenuItem> params); 
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-private:	
+	
 	std::shared_ptr<HtmController> htmCtrl;
 	std::vector<std::shared_ptr<MenuItem>> menuStack; 
 	int selItem;
@@ -382,4 +148,4 @@ private:
 	std::string keyInput; 
 };
 
-
+}

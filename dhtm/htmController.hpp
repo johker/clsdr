@@ -4,7 +4,11 @@
 #include "terminalOutput.hpp"
 #include "../../tiny_htm/tiny_htm/tiny_htm.hpp"    
 
-namespace ph {
+namespace dh {
+
+constexpr char MODE_INSERT[]{"INSERT"};		// Insert data
+constexpr char MODE_SELECT[]{"SELECT"};		// Select from menu
+constexpr char MODE_EDIT[]{"EDIT"};		// Edit parameter
 
 constexpr unsigned int hash(const char *s, int off = 0) {                                                                                                                                                           
 	        return !s[off] ? 5381 : (hash(s, off+1)*33) ^ s[off];                           

@@ -1,5 +1,7 @@
 #include "htmController.hpp"
 
+namespace dh {
+
 HtmController::HtmController(){};
 HtmController::~HtmController(){};
 
@@ -70,4 +72,6 @@ std::string HtmController::getModeTxt() {
 }
 EncoderType HtmController::getEncoderType() {
 	return encoderType;
+}
+
 }
