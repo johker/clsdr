@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "terminalOutput.hpp"
 #include "../../tiny_htm/tiny_htm/tiny_htm.hpp"    
+#include "stringConstants.hpp"
 
 namespace dh {
 
