@@ -12,6 +12,7 @@
 
 #include "../tiny_htm/tiny_htm/tiny_htm.hpp"
 
+#include "dhtm/stringConstants.hpp"
 #include "dhtm/terminalOutput.hpp"
 #include "dhtm/htmController.hpp"
 

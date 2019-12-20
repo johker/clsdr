@@ -10,8 +10,18 @@
 #include <ncursesw/ncurses.h>
 #include <locale.h>
 
-#include "stringConstants.hpp"
 #include "htmController.hpp"
+#include "stringConstants.hpp"
+
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+
+#define KEY_LINE_FEED 0x0A
+#define KEY_CARRIAGE_RETURN 0x0D
+#define KEY_ZERO 0x2F
+#define KEY_NINE 0x39
+#define KEY_DOT 0x2E
+#define KEY_BCKSPACE 0x7F
 
 namespace dh {
 
