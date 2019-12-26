@@ -22,7 +22,6 @@
 // NORMAL mode: Commands to select view, exit program etc.
 // Input should be decoupled from HTM output so a different sensor can be used easily
 
-int updateScreen(WINDOW **win, const std::shared_ptr<dh::HtmController>& htmCtrl); 
 void initNcurses();
 
 int main(){
@@ -140,7 +139,7 @@ int main(){
 		auto sdr = scalarEncoder.encode(i%max);
 
 		// Update screen dimension
-		auto updt = updateScreen(win, htmCtrl);
+		auto updt = terminalOutput.updateScreen(win);
 
 		// Update status and control bar
 		terminalOutput.printControlBar(win[1]);	
@@ -159,25 +158,3 @@ int main(){
 	return 0;
 }
 
-
-int updateScreen(WINDOW **win, const std::shared_ptr<dh::HtmController>& htmCtrl) {
-	
-	getmaxyx(win[0],htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
-	if(htmCtrl->avrows != htmCtrl->avrowstmo || htmCtrl->avcols != htmCtrl->avcolstmo) {
-		wresize(win[1],3,htmCtrl->avcols-2);
-		wresize(win[2],3,htmCtrl->avcols-2);
-		wresize(win[3],htmCtrl->avrows-6,htmCtrl->avcols-2);
-		mvwin(win[2],htmCtrl->avrows-3,1); 
-		wclear(win[0]);
-		for(int wi = 1; wi < 4; wi++) {
-			wclear(win[wi]);
-			box(win[wi],0,0);
-			wrefresh(win[wi]);
-		}
-		htmCtrl->avrowstmo = htmCtrl->avrows;
-		htmCtrl->avcolstmo = htmCtrl->avcols;
-			
-		return 1;
-	}
-	return 0;
-}

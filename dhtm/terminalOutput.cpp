@@ -200,5 +200,26 @@ void TerminalOutput::printContentPane(WINDOW *contwin, const xt::xarray<bool> & 
 	}	
 	wrefresh(contwin);
 }
+int TerminalOutput::updateScreen(WINDOW **win) {
+	
+	getmaxyx(win[0],htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
+	if(htmCtrl->avrows != htmCtrl->avrowstmo || htmCtrl->avcols != htmCtrl->avcolstmo) {
+		wresize(win[1],3,htmCtrl->avcols-2);
+		wresize(win[2],3,htmCtrl->avcols-2);
+		wresize(win[3],htmCtrl->avrows-6,htmCtrl->avcols-2);
+		mvwin(win[2],htmCtrl->avrows-3,1); 
+		wclear(win[0]);
+		for(int wi = 1; wi < 4; wi++) {
+			wclear(win[wi]);
+			box(win[wi],0,0);
+			wrefresh(win[wi]);
+		}
+		htmCtrl->avrowstmo = htmCtrl->avrows;
+		htmCtrl->avcolstmo = htmCtrl->avcols;
+			
+		return 1;
+	}
+	return 0;
+}
 
 }
