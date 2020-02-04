@@ -3,9 +3,134 @@
 namespace dh {
 
 TerminalOutput::TerminalOutput(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {
+	startTerminal();
 	addMenu();
 }
+TerminalOutput::~TerminalOutput() {
+	stopTerminal();
+}
+bool TerminalOutput::startTerminal() {
+	// Initialize View	
+	setlocale(LC_ALL, "");					// Unicode support
+	initscr();						// Init screen		
+	clear();						// Clear terminal	 
+	timeout(0);						// Non-blocking input
+	noecho();						// No automatic printing
+	cbreak();						// Immediate key input
+	curs_set(0);						// Hide real cursor
+	use_default_colors();					// Transparent background
+	start_color();						// Use colors
+	keypad(stdscr, 1);					// Fix keypad
+	nonl();							// Get return key
+	leaveok(stdscr,1);					// Dont care where cursor is left
+	intrflush(stdscr,0);					// Avoid potential graphical issues
+	
+	// Initialize windows
+	ctrlwin = newwin(3,avcols-2,0,1);			// Control window
+	statuswin = newwin(3,avcols-2,avrows-3,1);		// Status window
+	contentwin = newwin(avrows-6,avcols-2,3,1);		// Content window
 
+	// Draw borders
+	box(ctrlwin,0,0);
+	box(statuswin,0,0);
+	box(contentwin,0,0);
+
+	// Get initial screen dimensions
+	getmaxyx(stdscr,avrows,avcols);	
+	htmCtrl->avrows = avrows;
+	htmCtrl->avcols = avcols;
+	
+	// Initialize colors
+	init_pair(1, COLOR_BLACK, COLOR_WHITE);
+
+	// Start the thread
+	done = false; 
+	workerThread = new std::thread(TerminalOutput::worker, this);
+	std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	return true;
+}
+bool TerminalOutput::stopTerminal() {
+	if(!workerThread) {
+		return true;
+	}
+	done = true;
+	workerThread->join();
+	workerThread = nullptr;
+	return true;
+}
+int TerminalOutput::worker(TerminalOutput* argTerminal) {
+	int i = 0;
+	size_t max = 100; 
+	do {
+		// User Input
+		while(1) { 
+			int key = getch();
+			if(key == ERR) break;
+			if (key == KEY_F(2)) {
+				argTerminal->htmCtrl->setMode(dh::SELECT);		// F2: Switch to select mode
+				argTerminal->collapse();
+			} else if(key == KEY_F(3)) {
+				argTerminal->htmCtrl->setMode(dh::INSERT);		// F3: Switch to insert mode
+				argTerminal->collapse();
+			}
+			if(argTerminal->htmCtrl->getMode()==dh::EDIT) {		
+				if(key== KEY_DOT || key == KEY_BCKSPACE || key >= KEY_ZERO && key <= KEY_NINE) {
+					argTerminal->numEntry(key);
+				}				
+			}
+		 	if(argTerminal->htmCtrl->getMode() == dh::SELECT || argTerminal->htmCtrl->getMode() == dh::EDIT) {
+				switch(key) {
+					case KEY_LEFT:
+						argTerminal->selLeft();	
+						break;
+					case KEY_RIGHT:
+						argTerminal->selRight();
+						break;
+					case KEY_UP:
+						argTerminal->selUp();
+						break;
+					case KEY_DOWN:
+						argTerminal->selDown();
+						break;
+					case KEY_ENTER: 
+						argTerminal->enter();
+						break;
+					case KEY_LINE_FEED: 
+						argTerminal->enter();
+						break;
+					case KEY_CARRIAGE_RETURN: 
+						argTerminal->enter();
+						break;
+					default:
+						argTerminal->htmCtrl->setStatusTxt(std::to_string(key));
+						break;
+					} 
+				}
+			if(argTerminal->htmCtrl->getMode() == dh::INSERT) {
+				
+			}
+		}
+		// HTM Update 
+		auto sdr = argTerminal->htmCtrl->getScalarEncoder()->encode(i%max);
+
+		// Update screen dimension
+		argTerminal->updateScreen();
+
+		// Update status and control bar
+		argTerminal->printControlBar();	
+		argTerminal->printStatusBar();		
+		argTerminal->printContentPane(sdr);
+
+		i += 1;
+		
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));	
+
+	} while(!argTerminal->done);
+	clrtoeol();
+	refresh();
+	endwin();
+	return true;
+}
 void TerminalOutput::addMenu() {
 	auto root = MenuItem::create(KEY_MENU, std::shared_ptr<MenuItem>());
 	menuStack.push_back(root);
@@ -29,7 +154,7 @@ void TerminalOutput::addParamsMenu(std::shared_ptr<MenuItem> params) {
 	// TODO: Add more encoder menues
 	
 }
-void TerminalOutput::selUp(WINDOW *ctrlwin) {
+void TerminalOutput::selUp() {
 	auto& mi = menuStack.back()->children.at(selItem);
 	if(htmCtrl->getMode()== EDIT && mi->type==2) {
 		const auto& si = std::static_pointer_cast<SelectItem>(mi);
@@ -40,22 +165,22 @@ void TerminalOutput::selUp(WINDOW *ctrlwin) {
 		selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 		menuStack.back()->selChild = selItem;
 	}
-	printControlBar(ctrlwin);
+	printControlBar();
 }
-void TerminalOutput::selDown(WINDOW *ctrlwin) {
+void TerminalOutput::selDown() {
 	auto& mi = menuStack.back()->children.at(selItem);
 	if(htmCtrl->getMode()== EDIT && mi->type==2) {
 		const auto& si = std::static_pointer_cast<SelectItem>(mi);
-		si->nextValue();
+	si->nextValue();
 	} else {
 		keyInput = "";		// Clear keyboard input
 		htmCtrl->setMode(SELECT);	
 		selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 		menuStack.back()->selChild = selItem;
 	}
-	printControlBar(ctrlwin);
+	printControlBar();
 }
-void TerminalOutput::selLeft(WINDOW *ctrlwin) {
+void TerminalOutput::selLeft() {
 	if(menuStack.size()>1) {
 		menuStack.pop_back();
 		selItem = menuStack.back()->selChild;
@@ -64,9 +189,9 @@ void TerminalOutput::selLeft(WINDOW *ctrlwin) {
 	}
 	keyInput = "";		// Clear keyboard input
 	htmCtrl->setMode(SELECT);
-	printControlBar(ctrlwin);
+	printControlBar();
 }
-void TerminalOutput::selRight(WINDOW *ctrlwin) {
+void TerminalOutput::selRight() {
 	if(collapsed) {
 		collapsed = false;
 	}
@@ -75,9 +200,9 @@ void TerminalOutput::selRight(WINDOW *ctrlwin) {
 		menuStack.push_back(mi);
 		selItem = 0;
 	}	
-	printControlBar(ctrlwin);
+	printControlBar();
 }
-void TerminalOutput::numEntry(WINDOW *ctrlwin, int key) {
+void TerminalOutput::numEntry(int key) {
 	if(key == KEY_DOT && keyInput.find('.') != std::string::npos) {
 		return; 		// Dont allow multiple dots		
 	} 
@@ -88,11 +213,11 @@ void TerminalOutput::numEntry(WINDOW *ctrlwin, int key) {
 	} else {
 		keyInput.append(std::string(1, char(key)));
 	}	
-	printControlBar(ctrlwin);
+	printControlBar();
 }
-void TerminalOutput::enter(WINDOW *ctrlwin) {
+void TerminalOutput::enter() {
 	if(collapsed || !menuStack.back()->isLeaf) { 
-		selRight(ctrlwin);
+		selRight();
 	} else {
 		const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
 		if(htmCtrl->getMode()== EDIT) {
@@ -106,14 +231,14 @@ void TerminalOutput::enter(WINDOW *ctrlwin) {
 			htmCtrl->setMode(EDIT);
 		}
 	}
-	printControlBar(ctrlwin);
+	printControlBar();
 }
-void TerminalOutput::collapse(WINDOW *ctrlwin) {
+void TerminalOutput::collapse() {
 	menuStack.resize(1);
 	collapsed = true;
-	printControlBar(ctrlwin);
+	printControlBar();
 }
-void TerminalOutput::printControlBar(WINDOW *ctrlwin) 
+void TerminalOutput::printControlBar() 
 {
 	wclear(ctrlwin);
 	int i = 0, x = 3, y = 1;
@@ -159,24 +284,24 @@ void TerminalOutput::printControlBar(WINDOW *ctrlwin)
 	}
 	wrefresh(ctrlwin);
 }
-void TerminalOutput::printStatusBar(WINDOW *statwin)  {
-	wclear(statwin);
+void TerminalOutput::printStatusBar()  {
+	wclear(statuswin);
 	int x,y; 
 	x = 3;
 	y = 1;	
-	box(statwin,0,0); 
-	mvwprintw(statwin,y,x,htmCtrl->getModeTxt().c_str());
+	box(statuswin,0,0); 
+	mvwprintw(statuswin,y,x,htmCtrl->getModeTxt().c_str());
 	x += 7;
-	mvwprintw(statwin,y,x,htmCtrl->getStatusTxt().c_str());
-	wrefresh(statwin);
+	mvwprintw(statuswin,y,x,htmCtrl->getStatusTxt().c_str());
+	wrefresh(statuswin);
 }	
-void TerminalOutput::printContentPane(WINDOW *contwin, const xt::xarray<bool> & sdr){
+void TerminalOutput::printContentPane(const xt::xarray<bool> & sdr){
 	int i; 
 	int xi,yi;
 	int xoff,yoff;
 	int maxrows, maxcols;
 
-	wclear(contwin);
+	wclear(contentwin);
 	// Offset depending on HTM topology
 	// We need NCOLS << 1 for whitespaces
 	maxcols = htmCtrl->avcols-2 < htmCtrl->ncols << 1 ? htmCtrl->avcols-2 : htmCtrl->ncols << 1;   	
@@ -190,33 +315,35 @@ void TerminalOutput::printContentPane(WINDOW *contwin, const xt::xarray<bool> & 
 		yi = (i << 1) / maxcols + yoff;
 
 		if(sdr[i]) {
-			mvwprintw(contwin,yi,xi,SYM_ACTIVE);
-			mvwaddch(contwin,yi,xi-1,' ');
+			mvwprintw(contentwin,yi,xi,SYM_ACTIVE);
+			mvwaddch(contentwin,yi,xi-1,' ');
 		}
 		else {
-			mvwprintw(contwin,yi,xi,SYM_INACTIVE);
-			mvwaddch(contwin,yi,xi-1,' ');
+			mvwprintw(contentwin,yi,xi,SYM_INACTIVE);
+			mvwaddch(contentwin,yi,xi-1,' ');
 		}
 	}	
-	wrefresh(contwin);
+	wrefresh(contentwin);
 }
-int TerminalOutput::updateScreen(WINDOW **win) {
-	
-	getmaxyx(win[0],htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
+int TerminalOutput::updateScreen() {
+	getmaxyx(stdwin,htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
 	if(htmCtrl->avrows != htmCtrl->avrowstmo || htmCtrl->avcols != htmCtrl->avcolstmo) {
-		wresize(win[1],3,htmCtrl->avcols-2);
-		wresize(win[2],3,htmCtrl->avcols-2);
-		wresize(win[3],htmCtrl->avrows-6,htmCtrl->avcols-2);
-		mvwin(win[2],htmCtrl->avrows-3,1); 
-		wclear(win[0]);
-		for(int wi = 1; wi < 4; wi++) {
-			wclear(win[wi]);
-			box(win[wi],0,0);
-			wrefresh(win[wi]);
-		}
+		wresize(ctrlwin,3,htmCtrl->avcols-2);
+		wresize(statuswin,3,htmCtrl->avcols-2);
+		wresize(contentwin,htmCtrl->avrows-6,htmCtrl->avcols-2);
+		mvwin(statuswin,htmCtrl->avrows-3,1); 
+		wclear(stdwin);
+		wclear(ctrlwin);
+		box(ctrlwin,0,0);
+		wrefresh(ctrlwin);
+		wclear(statuswin);
+		box(statuswin,0,0);
+		wrefresh(statuswin);
+		wclear(contentwin);
+		box(contentwin,0,0);
+		wrefresh(contentwin); 
 		htmCtrl->avrowstmo = htmCtrl->avrows;
 		htmCtrl->avcolstmo = htmCtrl->avcols;
-			
 		return 1;
 	}
 	return 0;

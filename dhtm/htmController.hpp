@@ -45,6 +45,7 @@ public:
 	void setStatusTxt(std::string argStatusTxt);
 	void setMode(Mode argMode);
 	void setScalarEncoder(th::ScalarEncoder* argScalarEncoder);
+	th::ScalarEncoder* getScalarEncoder();
 	void setCategoryEncoder(th::CategoryEncoder* argCategoryEncoder);
 	void setEncoderType(EncoderType argEncoderType);
 	std::string getStatusTxt();

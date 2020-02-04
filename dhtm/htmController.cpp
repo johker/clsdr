@@ -55,6 +55,9 @@ void HtmController::setMode(Mode argMode){
 void HtmController::setScalarEncoder(th::ScalarEncoder* argScalarEncoder) { 
 	scalarEncoder = argScalarEncoder;
 }
+th::ScalarEncoder* HtmController::getScalarEncoder() {
+	return scalarEncoder;
+}
 void HtmController::setCategoryEncoder(th::CategoryEncoder* argCategoryEncoder) {
 	categoryEncoder = argCategoryEncoder;
 }

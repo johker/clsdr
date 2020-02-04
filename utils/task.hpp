@@ -24,7 +24,7 @@ private:
 	mutable std::mutex messageQueueMutex;
 	std::queue<std::shared_ptr<T>> messageQueue;
 	std::condition_variable messageQueuedCondition;
-	static int worker(Task* argTask); 
+	static int worker(Task* argTask);
 }
 
 

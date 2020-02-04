@@ -3,9 +3,11 @@
 #include <string>
 #include <cstring>
 #include <chrono>
-#include <thread>
 #include <memory>
+#include <atomic>
 #include <algorithm>
+#include <mutex>
+#include <thread>
 #include <xtensor/xarray.hpp>
 #include <ncursesw/ncurses.h>
 #include <locale.h>
@@ -95,24 +97,37 @@ private:
 
 class TerminalOutput {
 public: 
-	TerminalOutput(std::shared_ptr<HtmController> argHtmController); 
+	explicit TerminalOutput(std::shared_ptr<HtmController> argHtmController); 
+	virtual ~TerminalOutput();
 
-	void selUp(WINDOW *ctrlwin); 
-	void selDown(WINDOW *ctrlwin); 
-	void selLeft(WINDOW *ctrlwin); 
-	void selRight(WINDOW *ctrlwin); 
-	void numEntry(WINDOW *ctrlwin, int key); 
-	void enter(WINDOW *ctrlwin);
-	void collapse(WINDOW *ctrlwin);
-	void printControlBar(WINDOW *ctrlwin);
-	void printStatusBar(WINDOW *ctrl);
-	void printContentPane(WINDOW *ctrlwin, const xt::xarray<bool>& sdr);
-	int updateScreen(WINDOW **win);
+	void selUp(); 
+	void selDown(); 
+	void selLeft(); 
+	void selRight(); 
+	void numEntry(int key); 
+	void enter();
+	void collapse();
+	void printControlBar();
+	void printStatusBar();
+	void printContentPane(const xt::xarray<bool>& sdr);
+	int updateScreen();
+	bool startTerminal();
+	bool stopTerminal();
 
 private:
+	static int worker(TerminalOutput* argTerminal);
 	void addMenu();
 	void addParamsMenu(std::shared_ptr<MenuItem> params); 
 	
+	int avrows,avcols;					// Available rows / cols
+	int avrowstmo = 0, avcolstmo = 0;			// Available rows / cols in t minus one
+	WINDOW *stdwin;
+	WINDOW *ctrlwin;
+	WINDOW *statuswin;
+	WINDOW *contentwin;
+	int cmdidx = 0;						// command index
+	std::atomic<bool> done; 
+	std::thread* workerThread; 
 	std::shared_ptr<HtmController> htmCtrl;
 	std::vector<std::shared_ptr<MenuItem>> menuStack; 
 	int selItem;
