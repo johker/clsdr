@@ -17,4 +17,3 @@ add_subdirectory(dhtm)
 add_executable(dhtmdemo main.cpp)
 
 target_link_libraries(dhtmdemo dhtmlib panel xtensor ${CURSES_LIBRARY})
-
