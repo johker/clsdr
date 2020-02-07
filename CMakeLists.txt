@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.13)
 
 project(dhtmdemo)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 add_library(dhtmlib)
 
 find_package(xtl REQUIRED)                                                                                                                                                                                          

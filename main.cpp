@@ -25,7 +25,7 @@
 void initNcurses();
 
 int main(){
-
+	
 	// HTM 
 	size_t numcat = 2;
 	size_t encLen = 256;
