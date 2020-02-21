@@ -326,13 +326,13 @@ void TerminalOutput::printContentPane(const xt::xarray<bool> & sdr){
 	wrefresh(contentwin);
 }
 int TerminalOutput::updateScreen() {
-	getmaxyx(stdwin,htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
+	getmaxyx(stdscr,htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
 	if(htmCtrl->avrows != htmCtrl->avrowstmo || htmCtrl->avcols != htmCtrl->avcolstmo) {
 		wresize(ctrlwin,3,htmCtrl->avcols-2);
 		wresize(statuswin,3,htmCtrl->avcols-2);
 		wresize(contentwin,htmCtrl->avrows-6,htmCtrl->avcols-2);
 		mvwin(statuswin,htmCtrl->avrows-3,1); 
-		wclear(stdwin);
+		wclear(stdscr);
 		wclear(ctrlwin);
 		box(ctrlwin,0,0);
 		wrefresh(ctrlwin);
