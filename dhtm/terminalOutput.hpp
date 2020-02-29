@@ -113,6 +113,7 @@ public:
 	int updateScreen();
 	bool startTerminal();
 	bool stopTerminal();
+	bool done = false; 
 
 private:
 	static int worker(TerminalOutput* argTerminal);
@@ -126,7 +127,6 @@ private:
 	WINDOW *statuswin;
 	WINDOW *contentwin;
 	int cmdidx = 0;						// command index
-	std::atomic<bool> done; 
 	std::thread* workerThread; 
 	std::shared_ptr<HtmController> htmCtrl;
 	std::vector<std::shared_ptr<MenuItem>> menuStack; 

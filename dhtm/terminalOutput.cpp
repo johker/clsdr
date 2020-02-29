@@ -53,7 +53,6 @@ bool TerminalOutput::stopTerminal() {
 	if(!workerThread) {
 		return true;
 	}
-	done = true;
 	workerThread->join();
 	workerThread = nullptr;
 	return true;
