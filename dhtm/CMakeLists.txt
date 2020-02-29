@@ -1,9 +1,9 @@
 target_sources(dhtmlib
 	PRIVATE
-		terminalOutput.cpp
+		terminal.cpp
 		htmController.cpp
 	PUBLIC
-		terminalOutput.hpp
+		terminal.hpp
 		htmController.hpp
 		stringConstants.hpp
 )

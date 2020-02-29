@@ -1,15 +1,15 @@
-#include "terminalOutput.hpp"
+#include "terminal.hpp"
 
 namespace dh {
 
-TerminalOutput::TerminalOutput(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {
+Terminal::Terminal(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {
 	startTerminal();
 	addMenu();
 }
-TerminalOutput::~TerminalOutput() {
+Terminal::~Terminal() {
 	stopTerminal();
 }
-bool TerminalOutput::startTerminal() {
+bool Terminal::startTerminal() {
 	// Initialize View	
 	setlocale(LC_ALL, "");					// Unicode support
 	initscr();						// Init screen		
@@ -45,11 +45,11 @@ bool TerminalOutput::startTerminal() {
 
 	// Start the thread
 	done = false; 
-	workerThread = new std::thread(TerminalOutput::worker, this);
+	workerThread = new std::thread(Terminal::worker, this);
 	std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	return true;
 }
-bool TerminalOutput::stopTerminal() {
+bool Terminal::stopTerminal() {
 	if(!workerThread) {
 		return true;
 	}
@@ -57,7 +57,7 @@ bool TerminalOutput::stopTerminal() {
 	workerThread = nullptr;
 	return true;
 }
-int TerminalOutput::worker(TerminalOutput* argTerminal) {
+int Terminal::worker(Terminal* argTerminal) {
 	int i = 0;
 	size_t max = 100; 
 	do {
@@ -130,7 +130,7 @@ int TerminalOutput::worker(TerminalOutput* argTerminal) {
 	endwin();
 	return true;
 }
-void TerminalOutput::addMenu() {
+void Terminal::addMenu() {
 	auto root = MenuItem::create(KEY_MENU, std::shared_ptr<MenuItem>());
 	menuStack.push_back(root);
 	// PARAMS
@@ -143,7 +143,7 @@ void TerminalOutput::addMenu() {
 	ParamItem::create(KEY_NUMCOL, view, htmCtrl);
 	selItem = 0;
 }
-void TerminalOutput::addParamsMenu(std::shared_ptr<MenuItem> params) {
+void Terminal::addParamsMenu(std::shared_ptr<MenuItem> params) {
 	if(htmCtrl->getEncoderType() == SCALAR) {
 		ParamItem::create(KEY_MINVAL, params, htmCtrl);
 		ParamItem::create(KEY_MAXVAL, params, htmCtrl);
@@ -153,7 +153,7 @@ void TerminalOutput::addParamsMenu(std::shared_ptr<MenuItem> params) {
 	// TODO: Add more encoder menues
 	
 }
-void TerminalOutput::selUp() {
+void Terminal::selUp() {
 	auto& mi = menuStack.back()->children.at(selItem);
 	if(htmCtrl->getMode()== EDIT && mi->type==2) {
 		const auto& si = std::static_pointer_cast<SelectItem>(mi);
@@ -166,7 +166,7 @@ void TerminalOutput::selUp() {
 	}
 	printControlBar();
 }
-void TerminalOutput::selDown() {
+void Terminal::selDown() {
 	auto& mi = menuStack.back()->children.at(selItem);
 	if(htmCtrl->getMode()== EDIT && mi->type==2) {
 		const auto& si = std::static_pointer_cast<SelectItem>(mi);
@@ -179,7 +179,7 @@ void TerminalOutput::selDown() {
 	}
 	printControlBar();
 }
-void TerminalOutput::selLeft() {
+void Terminal::selLeft() {
 	if(menuStack.size()>1) {
 		menuStack.pop_back();
 		selItem = menuStack.back()->selChild;
@@ -190,7 +190,7 @@ void TerminalOutput::selLeft() {
 	htmCtrl->setMode(SELECT);
 	printControlBar();
 }
-void TerminalOutput::selRight() {
+void Terminal::selRight() {
 	if(collapsed) {
 		collapsed = false;
 	}
@@ -201,7 +201,7 @@ void TerminalOutput::selRight() {
 	}	
 	printControlBar();
 }
-void TerminalOutput::numEntry(int key) {
+void Terminal::numEntry(int key) {
 	if(key == KEY_DOT && keyInput.find('.') != std::string::npos) {
 		return; 		// Dont allow multiple dots		
 	} 
@@ -214,7 +214,7 @@ void TerminalOutput::numEntry(int key) {
 	}	
 	printControlBar();
 }
-void TerminalOutput::enter() {
+void Terminal::enter() {
 	if(collapsed || !menuStack.back()->isLeaf) { 
 		selRight();
 	} else {
@@ -232,12 +232,12 @@ void TerminalOutput::enter() {
 	}
 	printControlBar();
 }
-void TerminalOutput::collapse() {
+void Terminal::collapse() {
 	menuStack.resize(1);
 	collapsed = true;
 	printControlBar();
 }
-void TerminalOutput::printControlBar() 
+void Terminal::printControlBar() 
 {
 	wclear(ctrlwin);
 	int i = 0, x = 3, y = 1;
@@ -283,7 +283,7 @@ void TerminalOutput::printControlBar()
 	}
 	wrefresh(ctrlwin);
 }
-void TerminalOutput::printStatusBar()  {
+void Terminal::printStatusBar()  {
 	wclear(statuswin);
 	int x,y; 
 	x = 3;
@@ -294,7 +294,7 @@ void TerminalOutput::printStatusBar()  {
 	mvwprintw(statuswin,y,x,htmCtrl->getStatusTxt().c_str());
 	wrefresh(statuswin);
 }	
-void TerminalOutput::printContentPane(const xt::xarray<bool> & sdr){
+void Terminal::printContentPane(const xt::xarray<bool> & sdr){
 	int i; 
 	int xi,yi;
 	int xoff,yoff;
@@ -324,7 +324,7 @@ void TerminalOutput::printContentPane(const xt::xarray<bool> & sdr){
 	}	
 	wrefresh(contentwin);
 }
-int TerminalOutput::updateScreen() {
+int Terminal::updateScreen() {
 	getmaxyx(stdscr,htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
 	if(htmCtrl->avrows != htmCtrl->avrowstmo || htmCtrl->avcols != htmCtrl->avcolstmo) {
 		wresize(ctrlwin,3,htmCtrl->avcols-2);

@@ -13,7 +13,7 @@
 #include "../tiny_htm/tiny_htm/tiny_htm.hpp"
 
 #include "dhtm/stringConstants.hpp"
-#include "dhtm/terminalOutput.hpp"
+#include "dhtm/terminal.hpp"
 #include "dhtm/htmController.hpp"
 
 
@@ -43,8 +43,8 @@ int main(){
 	htmCtrl->setScalarEncoder(&scalarEncoder);
 	
 	// Start Terminal Thread
-	dh::TerminalOutput terminalOutput(htmCtrl);
-	terminalOutput.startTerminal();
+	dh::Terminal terminal(htmCtrl);
+	terminal.startTerminal();
 	
 	return 0;
 }

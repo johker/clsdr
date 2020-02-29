@@ -95,10 +95,10 @@ private:
 	size_t curIdx = 0;
 };
 
-class TerminalOutput {
+class Terminal {
 public: 
-	explicit TerminalOutput(std::shared_ptr<HtmController> argHtmController); 
-	virtual ~TerminalOutput();
+	explicit Terminal(std::shared_ptr<HtmController> argHtmController); 
+	virtual ~Terminal();
 
 	void selUp(); 
 	void selDown(); 
@@ -116,7 +116,7 @@ public:
 	bool done = false; 
 
 private:
-	static int worker(TerminalOutput* argTerminal);
+	static int worker(Terminal* argTerminal);
 	void addMenu();
 	void addParamsMenu(std::shared_ptr<MenuItem> params); 
 	
