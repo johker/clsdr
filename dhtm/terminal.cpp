@@ -2,7 +2,7 @@
 
 namespace dh {
 
-Terminal::Terminal(std::shared_ptr<HtmController> argHtmCtrl) : htmCtrl(argHtmCtrl) {
+Terminal::Terminal(std::shared_ptr<TerminalController> argTermCtrl) : termCtrl(argTermCtrl) {
 	startTerminal();
 	addMenu();
 }
@@ -37,8 +37,8 @@ bool Terminal::startTerminal() {
 
 	// Get initial screen dimensions
 	getmaxyx(stdscr,avrows,avcols);	
-	htmCtrl->avrows = avrows;
-	htmCtrl->avcols = avcols;
+	termCtrl->avrows = avrows;
+	termCtrl->avcols = avcols;
 	
 	// Initialize colors
 	init_pair(1, COLOR_BLACK, COLOR_WHITE);
@@ -66,18 +66,18 @@ int Terminal::worker(Terminal* argTerminal) {
 			int key = getch();
 			if(key == ERR) break;
 			if (key == KEY_F(2)) {
-				argTerminal->htmCtrl->setMode(dh::SELECT);		// F2: Switch to select mode
+				argTerminal->termCtrl->setMode(dh::SELECT);		// F2: Switch to select mode
 				argTerminal->collapse();
 			} else if(key == KEY_F(3)) {
-				argTerminal->htmCtrl->setMode(dh::INSERT);		// F3: Switch to insert mode
+				argTerminal->termCtrl->setMode(dh::INSERT);		// F3: Switch to insert mode
 				argTerminal->collapse();
 			}
-			if(argTerminal->htmCtrl->getMode()==dh::EDIT) {		
+			if(argTerminal->termCtrl->getMode()==dh::EDIT) {		
 				if(key== KEY_DOT || key == KEY_BCKSPACE || key >= KEY_ZERO && key <= KEY_NINE) {
 					argTerminal->numEntry(key);
 				}				
 			}
-		 	if(argTerminal->htmCtrl->getMode() == dh::SELECT || argTerminal->htmCtrl->getMode() == dh::EDIT) {
+		 	if(argTerminal->termCtrl->getMode() == dh::SELECT || argTerminal->termCtrl->getMode() == dh::EDIT) {
 				switch(key) {
 					case KEY_LEFT:
 						argTerminal->selLeft();	
@@ -101,27 +101,20 @@ int Terminal::worker(Terminal* argTerminal) {
 						argTerminal->enter();
 						break;
 					default:
-						argTerminal->htmCtrl->setStatusTxt(std::to_string(key));
+						argTerminal->termCtrl->setStatusTxt(std::to_string(key));
 						break;
 					} 
 				}
-			if(argTerminal->htmCtrl->getMode() == dh::INSERT) {
+			if(argTerminal->termCtrl->getMode() == dh::INSERT) {
 				
 			}
 		}
-		// HTM Update 
-		auto sdr = argTerminal->htmCtrl->getScalarEncoder()->encode(i%max);
-
-		// Update screen dimension
-		argTerminal->updateScreen();
-
-		// Update status and control bar
+		argTerminal->termCtrl->updateContent();	
+		argTerminal->updateScreenDimension();
 		argTerminal->printControlBar();	
 		argTerminal->printStatusBar();		
-		argTerminal->printContentPane(sdr);
+		argTerminal->printContentPane();
 
-		i += 1;
-		
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));	
 
 	} while(!argTerminal->done);
@@ -139,28 +132,26 @@ void Terminal::addMenu() {
 	// VIEW
 	auto view = MenuItem::create(KEY_VIEW, root);
 	std::vector<std::string> options = {KEY_INPUT, KEY_SPOOL};
-	SelectItem::create(KEY_LAYER, view, htmCtrl, options);
-	ParamItem::create(KEY_NUMCOL, view, htmCtrl);
+	SelectItem::create(KEY_LAYER, view, termCtrl, options);
+	ParamItem::create(KEY_NUMCOL, view);
 	selItem = 0;
 }
 void Terminal::addParamsMenu(std::shared_ptr<MenuItem> params) {
-	if(htmCtrl->getEncoderType() == SCALAR) {
-		ParamItem::create(KEY_MINVAL, params, htmCtrl);
-		ParamItem::create(KEY_MAXVAL, params, htmCtrl);
-		ParamItem::create(KEY_SDRLEN, params, htmCtrl);
-		ParamItem::create(KEY_ACTBTS, params, htmCtrl);				
+	if(termCtrl->getEncoderType() == SCALAR) {
+		termCtrl->parameters.push_back(ParamItem::create(KEY_MINVAL, params));
+		termCtrl->parameters.push_back(ParamItem::create(KEY_MAXVAL, params));
+		termCtrl->parameters.push_back(ParamItem::create(KEY_SDRLEN, params));
+		termCtrl->parameters.push_back(ParamItem::create(KEY_ACTBTS, params));				
 	} 
-	// TODO: Add more encoder menues
-	
 }
 void Terminal::selUp() {
 	auto& mi = menuStack.back()->children.at(selItem);
-	if(htmCtrl->getMode()== EDIT && mi->type==2) {
+	if(termCtrl->getMode()== EDIT && mi->type==2) {
 		const auto& si = std::static_pointer_cast<SelectItem>(mi);
 		si->prevValue();
 	} else {
 		keyInput = "";		// Clear keyboard input
-		htmCtrl->setMode(SELECT);
+		termCtrl->setMode(SELECT);
 		selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 		menuStack.back()->selChild = selItem;
 	}
@@ -168,12 +159,12 @@ void Terminal::selUp() {
 }
 void Terminal::selDown() {
 	auto& mi = menuStack.back()->children.at(selItem);
-	if(htmCtrl->getMode()== EDIT && mi->type==2) {
+	if(termCtrl->getMode()== EDIT && mi->type==2) {
 		const auto& si = std::static_pointer_cast<SelectItem>(mi);
 	si->nextValue();
 	} else {
 		keyInput = "";		// Clear keyboard input
-		htmCtrl->setMode(SELECT);	
+		termCtrl->setMode(SELECT);	
 		selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 		menuStack.back()->selChild = selItem;
 	}
@@ -187,7 +178,7 @@ void Terminal::selLeft() {
 		collapsed = true;
 	}
 	keyInput = "";		// Clear keyboard input
-	htmCtrl->setMode(SELECT);
+	termCtrl->setMode(SELECT);
 	printControlBar();
 }
 void Terminal::selRight() {
@@ -219,15 +210,15 @@ void Terminal::enter() {
 		selRight();
 	} else {
 		const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
-		if(htmCtrl->getMode()== EDIT) {
+		if(termCtrl->getMode()== EDIT) {
 			if(keyInput.size()>0) {
-				htmCtrl->setValue(pi->name, std::stof(keyInput));
+				termCtrl->setValue(pi->name, std::stof(keyInput));
 			}
 			keyInput = "";			
-			htmCtrl->setMode(SELECT);
+			termCtrl->setMode(SELECT);
 		} else {
 			keyInput = pi->getValue();	
-			htmCtrl->setMode(EDIT);
+			termCtrl->setMode(EDIT);
 		}
 	}
 	printControlBar();
@@ -259,7 +250,7 @@ void Terminal::printControlBar()
 			const auto& pi = std::static_pointer_cast<ParamItem>(mi);
 			mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 			x += 3;
-			if(htmCtrl->getMode()== EDIT) {
+			if(termCtrl->getMode()== EDIT) {
 				wattron(ctrlwin, A_BLINK);
 				if(keyInput.size() > 0) {
 					mvwprintw(ctrlwin,y,x,"%s",keyInput.c_str());
@@ -272,7 +263,7 @@ void Terminal::printControlBar()
 		       const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 			x += 3;
-			if(htmCtrl->getMode()== EDIT) {
+			if(termCtrl->getMode()== EDIT) {
 				wattron(ctrlwin,A_BLINK);
 			}
 			mvwprintw(ctrlwin,y,x,"%s",si->getValue());
@@ -289,12 +280,12 @@ void Terminal::printStatusBar()  {
 	x = 3;
 	y = 1;	
 	box(statuswin,0,0); 
-	mvwprintw(statuswin,y,x,htmCtrl->getModeTxt().c_str());
+	mvwprintw(statuswin,y,x,termCtrl->getModeTxt().c_str());
 	x += 7;
-	mvwprintw(statuswin,y,x,htmCtrl->getStatusTxt().c_str());
+	mvwprintw(statuswin,y,x,termCtrl->getStatusTxt().c_str());
 	wrefresh(statuswin);
 }	
-void Terminal::printContentPane(const xt::xarray<bool> & sdr){
+void Terminal::printContentPane(){
 	int i; 
 	int xi,yi;
 	int xoff,yoff;
@@ -303,11 +294,11 @@ void Terminal::printContentPane(const xt::xarray<bool> & sdr){
 	wclear(contentwin);
 	// Offset depending on HTM topology
 	// We need NCOLS << 1 for whitespaces
-	maxcols = htmCtrl->avcols-2 < htmCtrl->ncols << 1 ? htmCtrl->avcols-2 : htmCtrl->ncols << 1;   	
-	maxrows = (htmCtrl->sdrSize << 1) / maxcols;
+	maxcols = termCtrl->avcols-2 < termCtrl->ncols << 1 ? termCtrl->avcols-2 : termCtrl->ncols << 1;   	
+	maxrows = (termCtrl->sdrSize << 1) / maxcols;
 
-	yoff = (htmCtrl->avrows-6 - maxrows) >> 1;
-	xoff = (htmCtrl->avcols-2 - maxcols) >> 1; 
+	yoff = (termCtrl->avrows-6 - maxrows) >> 1;
+	xoff = (termCtrl->avcols-2 - maxcols) >> 1; 
 
 	for(i = 0; i < sdr.size(); i++) {
 		xi = (i << 1) % maxcols + xoff;
@@ -324,13 +315,13 @@ void Terminal::printContentPane(const xt::xarray<bool> & sdr){
 	}	
 	wrefresh(contentwin);
 }
-int Terminal::updateScreen() {
-	getmaxyx(stdscr,htmCtrl->avrows,htmCtrl->avcols);	// Get screen dimensions
-	if(htmCtrl->avrows != htmCtrl->avrowstmo || htmCtrl->avcols != htmCtrl->avcolstmo) {
-		wresize(ctrlwin,3,htmCtrl->avcols-2);
-		wresize(statuswin,3,htmCtrl->avcols-2);
-		wresize(contentwin,htmCtrl->avrows-6,htmCtrl->avcols-2);
-		mvwin(statuswin,htmCtrl->avrows-3,1); 
+int Terminal::updateScreenDimension() {
+	getmaxyx(stdscr,termCtrl->avrows,termCtrl->avcols);	// Get screen dimensions
+	if(termCtrl->avrows != termCtrl->avrowstmo || termCtrl->avcols != termCtrl->avcolstmo) {
+		wresize(ctrlwin,3,termCtrl->avcols-2);
+		wresize(statuswin,3,termCtrl->avcols-2);
+		wresize(contentwin,termCtrl->avrows-6,termCtrl->avcols-2);
+		mvwin(statuswin,termCtrl->avrows-3,1); 
 		wclear(stdscr);
 		wclear(ctrlwin);
 		box(ctrlwin,0,0);
@@ -341,8 +332,8 @@ int Terminal::updateScreen() {
 		wclear(contentwin);
 		box(contentwin,0,0);
 		wrefresh(contentwin); 
-		htmCtrl->avrowstmo = htmCtrl->avrows;
-		htmCtrl->avcolstmo = htmCtrl->avcols;
+		termCtrl->avrowstmo = termCtrl->avrows;
+		termCtrl->avcolstmo = termCtrl->avcols;
 		return 1;
 	}
 	return 0;

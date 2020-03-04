@@ -3,6 +3,7 @@
 
 #include "../../tiny_htm/tiny_htm/tiny_htm.hpp"    
 #include "stringConstants.hpp"
+#include "itcMessage.hpp"
 
 namespace dh {
 
@@ -25,10 +26,10 @@ enum EncoderType {
 	CATEGORY
 };
 
-class HtmController {
+class TerminalController {
 public: 
-	HtmController();
-	virtual ~HtmController();
+	TerminalController();
+	virtual ~TerminalController();
 	
 	// Screen params
 	int avrows;
@@ -52,11 +53,19 @@ public:
 	Mode getMode();
 	std::string getModeTxt();
 	EncoderType getEncoderType();
+	bool pushMessage(std::shared_ptr<ItcMessage> argMessage);
 
 private: 
 	// Active Model
 	// TODO Dynamically switch between different encoders 
 	// Parameter Selection Menu should change
+	
+	// Receive messages:
+	std::queue<std::shared_ptr<ItcMessage> messageQueue;
+	mutable std::mutex messageQueueMutex;
+	
+	std::vector<std::shared_ptr<ParamItem>> parameters;
+	xt:xarray<bool> sdr;
 
 	// Models
 	// TODO Make Vector to allow multiple

@@ -14,7 +14,7 @@
 
 #include "dhtm/stringConstants.hpp"
 #include "dhtm/terminal.hpp"
-#include "dhtm/htmController.hpp"
+#include "dhtm/terminalController.hpp"
 
 
 // VIM like HTM interface:
@@ -22,7 +22,6 @@
 // NORMAL mode: Commands to select view, exit program etc.
 // Input should be decoupled from HTM output so a different sensor can be used easily
 
-void initNcurses();
 
 int main(){
 	
@@ -38,12 +37,15 @@ int main(){
 	th::CategoryEncoder categoryEncoder(numcat, encLen);
 	th::TemporalMemory tm({numcat*4}, 6);
 	
+	std::shared_ptr<ItcQueue> term2htmq = std::make_shared<ItcQueue>(); 
+	std::shared_ptr<ItcQueue> htm2termq = std::make_shared<ItcQueue>(); 
+	
 	// Initialize controller
-	std::shared_ptr<dh::HtmController> htmCtrl = std::make_shared<dh::HtmController>();
-	htmCtrl->setScalarEncoder(&scalarEncoder);
+	std::shared_ptr<dh::TerminalController> termCtrl = std::make_shared<dh::TerminalController>();
+	termCtrl->setScalarEncoder(&scalarEncoder);
 	
 	// Start Terminal Thread
-	dh::Terminal terminal(htmCtrl);
+	dh::Terminal terminal(termCtrl);
 	terminal.startTerminal();
 	
 	return 0;
