@@ -300,7 +300,7 @@ void Terminal::printContentPane(){
 	yoff = (termCtrl->avrows-6 - maxrows) >> 1;
 	xoff = (termCtrl->avcols-2 - maxcols) >> 1; 
 
-	for(i = 0; i < sdr.size(); i++) {
+	for(i = 0; i < termCtrl->sdr.size(); i++) {
 		xi = (i << 1) % maxcols + xoff;
 		yi = (i << 1) / maxcols + yoff;
 

@@ -37,8 +37,8 @@ int main(){
 	th::CategoryEncoder categoryEncoder(numcat, encLen);
 	th::TemporalMemory tm({numcat*4}, 6);
 	
-	std::shared_ptr<ItcQueue> term2htmq = std::make_shared<ItcQueue>(); 
-	std::shared_ptr<ItcQueue> htm2termq = std::make_shared<ItcQueue>(); 
+	std::shared_ptr<ItcQueue<ItcMessage>> term2htmq = std::make_shared<ItcQueue<ItcMessage>>(); 
+	std::shared_ptr<ItcQueue<ItcMessage>> htm2termq = std::make_shared<ItcQueue<ItcMessage>>(); 
 	
 	// Initialize controller
 	std::shared_ptr<dh::TerminalController> termCtrl = std::make_shared<dh::TerminalController>();

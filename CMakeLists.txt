@@ -16,6 +16,7 @@ find_package(Curses REQUIRED)
 find_library(panel REQUIRED)
 
 add_subdirectory(dhtm)
+add_subdirectory(utils)
 
 add_executable(dhtmdemo main.cpp)
 
