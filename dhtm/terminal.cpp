@@ -66,18 +66,18 @@ int Terminal::worker(Terminal* argTerminal) {
 			int key = getch();
 			if(key == ERR) break;
 			if (key == KEY_F(2)) {
-				argTerminal->termCtrl->setMode(dh::SELECT);		// F2: Switch to select mode
+				argTerminal->termCtrl->setMode(Mode::SELECT);		// F2: Switch to select mode
 				argTerminal->collapse();
 			} else if(key == KEY_F(3)) {
-				argTerminal->termCtrl->setMode(dh::INSERT);		// F3: Switch to insert mode
+				argTerminal->termCtrl->setMode(Mode::INSERT);		// F3: Switch to insert mode
 				argTerminal->collapse();
 			}
-			if(argTerminal->termCtrl->getMode()==dh::EDIT) {		
+			if(argTerminal->termCtrl->getMode()==Mode::EDIT) {		
 				if(key== KEY_DOT || key == KEY_BCKSPACE || key >= KEY_ZERO && key <= KEY_NINE) {
 					argTerminal->numEntry(key);
 				}				
 			}
-		 	if(argTerminal->termCtrl->getMode() == dh::SELECT || argTerminal->termCtrl->getMode() == dh::EDIT) {
+		 	if(argTerminal->termCtrl->getMode() == Mode::SELECT || argTerminal->termCtrl->getMode() == Mode::EDIT) {
 				switch(key) {
 					case KEY_LEFT:
 						argTerminal->selLeft();	
@@ -105,7 +105,7 @@ int Terminal::worker(Terminal* argTerminal) {
 						break;
 					} 
 				}
-			if(argTerminal->termCtrl->getMode() == dh::INSERT) {
+			if(argTerminal->termCtrl->getMode() == Mode::INSERT) {
 				
 			}
 		}
@@ -132,12 +132,12 @@ void Terminal::addMenu() {
 	// VIEW
 	auto view = MenuItem::create(KEY_VIEW, root);
 	std::vector<std::string> options = {KEY_INPUT, KEY_SPOOL};
-	SelectItem::create(KEY_LAYER, view, termCtrl, options);
+	SelectItem::create(KEY_LAYER, view, options);
 	ParamItem::create(KEY_NUMCOL, view);
 	selItem = 0;
 }
 void Terminal::addParamsMenu(std::shared_ptr<MenuItem> params) {
-	if(termCtrl->getEncoderType() == SCALAR) {
+	if(termCtrl->getEncoderType() == EncoderType::SCALAR) {
 		termCtrl->parameters.push_back(ParamItem::create(KEY_MINVAL, params));
 		termCtrl->parameters.push_back(ParamItem::create(KEY_MAXVAL, params));
 		termCtrl->parameters.push_back(ParamItem::create(KEY_SDRLEN, params));
@@ -146,12 +146,12 @@ void Terminal::addParamsMenu(std::shared_ptr<MenuItem> params) {
 }
 void Terminal::selUp() {
 	auto& mi = menuStack.back()->children.at(selItem);
-	if(termCtrl->getMode()== EDIT && mi->type==2) {
+	if(termCtrl->getMode()== Mode::EDIT && mi->type==2) {
 		const auto& si = std::static_pointer_cast<SelectItem>(mi);
 		si->prevValue();
 	} else {
 		keyInput = "";		// Clear keyboard input
-		termCtrl->setMode(SELECT);
+		termCtrl->setMode(Mode::SELECT);
 		selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 		menuStack.back()->selChild = selItem;
 	}
@@ -159,12 +159,12 @@ void Terminal::selUp() {
 }
 void Terminal::selDown() {
 	auto& mi = menuStack.back()->children.at(selItem);
-	if(termCtrl->getMode()== EDIT && mi->type==2) {
+	if(termCtrl->getMode()== Mode::EDIT && mi->type==2) {
 		const auto& si = std::static_pointer_cast<SelectItem>(mi);
 	si->nextValue();
 	} else {
 		keyInput = "";		// Clear keyboard input
-		termCtrl->setMode(SELECT);	
+		termCtrl->setMode(Mode::SELECT);	
 		selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 		menuStack.back()->selChild = selItem;
 	}
@@ -178,7 +178,7 @@ void Terminal::selLeft() {
 		collapsed = true;
 	}
 	keyInput = "";		// Clear keyboard input
-	termCtrl->setMode(SELECT);
+	termCtrl->setMode(Mode::SELECT);
 	printControlBar();
 }
 void Terminal::selRight() {
@@ -206,19 +206,20 @@ void Terminal::numEntry(int key) {
 	printControlBar();
 }
 void Terminal::enter() {
+	// TODO: Check for SelectItem 
 	if(collapsed || !menuStack.back()->isLeaf) { 
 		selRight();
 	} else {
 		const auto& pi = std::static_pointer_cast<ParamItem>(menuStack.back()->children.at(selItem));
-		if(termCtrl->getMode()== EDIT) {
+		if(termCtrl->getMode()==Mode::EDIT) {
 			if(keyInput.size()>0) {
 				termCtrl->setValue(pi->name, std::stof(keyInput));
 			}
 			keyInput = "";			
-			termCtrl->setMode(SELECT);
+			termCtrl->setMode(Mode::SELECT);
 		} else {
 			keyInput = pi->getValue();	
-			termCtrl->setMode(EDIT);
+			termCtrl->setMode(Mode::EDIT);
 		}
 	}
 	printControlBar();
@@ -250,7 +251,7 @@ void Terminal::printControlBar()
 			const auto& pi = std::static_pointer_cast<ParamItem>(mi);
 			mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 			x += 3;
-			if(termCtrl->getMode()== EDIT) {
+			if(termCtrl->getMode()== Mode::EDIT) {
 				wattron(ctrlwin, A_BLINK);
 				if(keyInput.size() > 0) {
 					mvwprintw(ctrlwin,y,x,"%s",keyInput.c_str());
@@ -263,7 +264,7 @@ void Terminal::printControlBar()
 		       const auto& si = std::static_pointer_cast<SelectItem>(mi);
 			mvwprintw(ctrlwin,y,x,"%s",SEP_PRM);
 			x += 3;
-			if(termCtrl->getMode()== EDIT) {
+			if(termCtrl->getMode()== Mode::EDIT) {
 				wattron(ctrlwin,A_BLINK);
 			}
 			mvwprintw(ctrlwin,y,x,"%s",si->getValue());
@@ -304,7 +305,7 @@ void Terminal::printContentPane(){
 		xi = (i << 1) % maxcols + xoff;
 		yi = (i << 1) / maxcols + yoff;
 
-		if(sdr[i]) {
+		if(termCtrl->sdr[i]) {
 			mvwprintw(contentwin,yi,xi,SYM_ACTIVE);
 			mvwaddch(contentwin,yi,xi-1,' ');
 		}

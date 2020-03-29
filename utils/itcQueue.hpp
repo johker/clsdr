@@ -20,5 +20,5 @@ private:
 	std::condition_variable condition;
 	std::queue<Q> queue;
 	std::atomic<bool> done;
-}
+};
 }

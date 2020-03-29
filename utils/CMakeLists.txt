@@ -1,9 +1,7 @@
 target_sources(utilslib
 	PRIVATE
-		itcTask.cpp
 		itcQueue.cpp
 	PUBLIC
-		itcTask.hpp
 		itcQueue.hpp
 		itcMessage.hpp
 )

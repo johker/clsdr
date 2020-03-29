@@ -2,18 +2,20 @@
 
 #include <string>
 #include <thread>
+#include <mutex>
+#include <queue>
 
 namespace dh {
 
 template <class T>	
-class Task {
+class ItcTask {
 
 public: 
-	virtual ~Task();
+	virtual ~ItcTask();
 	bool pushMessage(std::shared_ptr<T> argMessage);
 
 protected: 
-	explicit Task(std::string argName);
+	explicit ItcTask(std::string argName);
 	bool startTask(); 
 	bool stopTask(); 
 	virtual bool handleMessage(std::shared_ptr<T> argMessage) = 0;
@@ -24,7 +26,8 @@ private:
 	mutable std::mutex messageQueueMutex;
 	std::queue<std::shared_ptr<T>> messageQueue;
 	std::condition_variable messageQueuedCondition;
-	static int worker(Task* argTask);
+	static int worker(ItcTask<T> argItcTask);
+	
+};
 }
-
 

@@ -2,34 +2,34 @@
 
 namespace dh {
 
-TerminalController::TerminalController(std::shared_ptr<ItcQueue> argInQ, std::shared_ptr<ItcQueue> argOutQ): inQ(argInQ), outQ(argOutQ) {}
-TerminalController::TerminalController(){};
+TerminalController::TerminalController(std::shared_ptr<ItcQueue<ItcMessage>> argInQ, std::shared_ptr<ItcQueue<ItcMessage>> argOutQ): inQ(argInQ), outQ(argOutQ) {}
+TerminalController::~TerminalController(){};
 
-void TerminalController::setValue(const char* key, float value) {
-	std::shared_ptr<ItcMessage> msg std::make_shared<ItcMessage>(WRITE,key,value);
-	outQ->pushMessage(msg);
-I
-void Terminal::updateContent() {
-	std::shared_ptr<ItcMessage> message = nullptr;
+void TerminalController::updateContent() {
+	ItcMessage* message = nullptr;
 	while(inQ->get(message)) {
-		if(message->type == READ) {
-			auto paramItem = getParameterByKey(message->key);
+		if(message->type == ItcType::READ) {
+			std::shared_ptr<ParamItem> paramItem = getParameterByKey(message->key);
 			paramItem->setValue(message->value);
-		} else if(message->type = PRINT) {
+		} else if(message->type = ItcType::PRINT) {
 			sdr = message->sdr;
 		}
 	}
 }
-std::shared_ptr<ItcMessage> TerminalController::getParameterByKey(char* argKey)
+std::shared_ptr<ParamItem> TerminalController::getParameterByKey(char* argKey)
 {
-	std::vector<std::shared_ptr<ItcMessage>>::iterator it = 
+	std::vector<std::shared_ptr<ParamItem>>::iterator it = 
 		   std::find_if(parameters.begin(), parameters.end(),
-			[argKey](std::shared_ptr<ItcMessage> const n) {
+			[argKey](std::shared_ptr<ParamItem> const n) {
 			return strcmp(n->key,argKey);});
 	if (it != parameters.end()) {
 		return *it;
 	}
 	return nullptr;
+}
+void TerminalController::setValue(const char* key, float value) {
+	ItcMessage itcMessage(ItcType:WRITE,key,value);
+	outQ->pushMessage(itcMessage);
 }
 void TerminalController::setStatusTxt(std::string argStatusTxt){
 	statusTxt = argStatusTxt;
