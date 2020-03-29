@@ -10,7 +10,7 @@ template <class Q>
 class ItcQueue {
 public:
 	ItcQueue();
-	~ItcQueue();
+	virtual	~ItcQueue();
 	bool pushMessage(Q argMessage);
 	bool wait(Q* argResult);
 	bool get(Q* argResult);

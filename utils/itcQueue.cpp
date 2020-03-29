@@ -2,14 +2,17 @@
 
 namespace dh {
 
-ItcQueue::ItcQueue() {
+template <class Q>
+ItcQueue<Q>::ItcQueue() {
 		done = false;
 }
-ItcQueue::~ItcQueue() {
+template <class Q>
+ItcQueue<Q>::~ItcQueue() {
 	done = true;
 	condition.notify_all();
 }
-bool ItcQueue::pushMessage(Q argMessage) {
+template <class Q>
+bool ItcQueue<Q>::pushMessage(Q argMessage) {
 	if(done) {
 		return false;
 	}
@@ -18,8 +21,9 @@ bool ItcQueue::pushMessage(Q argMessage) {
 	condition.notify_one();
 	return true;
 }
-bool wait(Q* argResult) {
-	std::unique_lock<decltype(mutex)> lock(queueMutex);
+template <class Q>
+bool ItcQueue<Q>::wait(Q* argResult) {
+	std::unique_lock<decltype(queueMutex)> lock(queueMutex);
 	Q message;
 	while(!done) {
 		if(queue.size()) {
@@ -32,8 +36,9 @@ bool wait(Q* argResult) {
 	}
 	return false;
 }
-bool get(Q* argResult) {
-	std::unique_lock<decltype(mutex)> lock(queueMutex);
+template <class Q>
+bool ItcQueue<Q>::get(Q* argResult) {
+	std::unique_lock<decltype(queueMutex)> lock(queueMutex);
 	Q message;
 	if(queue.size()) {
 		message = queue.front();

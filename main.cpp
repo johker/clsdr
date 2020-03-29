@@ -15,6 +15,7 @@
 #include "dhtm/stringConstants.hpp"
 #include "dhtm/terminal.hpp"
 #include "dhtm/terminalController.hpp"
+#include "utils/itcQueue.hpp"
 
 
 // VIM like HTM interface:
@@ -37,12 +38,11 @@ int main(){
 	th::CategoryEncoder categoryEncoder(numcat, encLen);
 	th::TemporalMemory tm({numcat*4}, 6);
 	
-	std::shared_ptr<ItcQueue<ItcMessage>> term2htmq = std::make_shared<ItcQueue<ItcMessage>>(); 
-	std::shared_ptr<ItcQueue<ItcMessage>> htm2termq = std::make_shared<ItcQueue<ItcMessage>>(); 
+	std::shared_ptr<dh::ItcQueue<dh::ItcMessage>> term2htmq = std::make_shared<dh::ItcQueue<dh::ItcMessage>>(); 
+	std::shared_ptr<dh::ItcQueue<dh::ItcMessage>> htm2termq = std::make_shared<dh::ItcQueue<dh::ItcMessage>>(); 
 	
 	// Initialize controller
-	std::shared_ptr<dh::TerminalController> termCtrl = std::make_shared<dh::TerminalController>();
-	termCtrl->setScalarEncoder(&scalarEncoder);
+	std::shared_ptr<dh::TerminalController> termCtrl = std::make_shared<dh::TerminalController>(htm2termq, term2htmq);
 	
 	// Start Terminal Thread
 	dh::Terminal terminal(termCtrl);

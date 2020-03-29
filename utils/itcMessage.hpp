@@ -14,12 +14,12 @@ enum class ItcType {
 class ItcMessage {
 
 public:
-	ItcMessage(ItcType argType, char* argKey, float argValue) : type(argType), key(argKey), value(argValue) {}
-	ItcMessage(ItcType argType, char* argKey, xt::xarray<bool> argSdr) : type(argType), key(argKey), sdr(argSdr) {}
-	virtual ~ItcMessage();
+	ItcMessage(ItcType argType, const char* argKey, float argValue) : type(argType), key(argKey), value(argValue) {}
+	ItcMessage(ItcType argType, const char* argKey, xt::xarray<bool> argSdr) : type(argType), key(argKey), sdr(argSdr) {}
+	virtual ~ItcMessage() {}
 
 	ItcType type;
-	char* key;
+	const char* key;
 	float value; 
 	xt::xarray<bool> sdr;
 };

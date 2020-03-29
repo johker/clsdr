@@ -113,9 +113,9 @@ public:
 	int layer=0; 
 
 	void updateContent();
-	std::shared_ptr<ParamItem> getParameterByKey(char* argKey);
+	std::shared_ptr<ParamItem> getParameterByKey(const char* argKey);
 	bool pushMessage(std::shared_ptr<ItcMessage> argMessage);
-	void setValue(const char* key, float value);
+	void setValue(const char* argKey, float argValue);
 	void setStatusTxt(std::string argStatusTxt);
 	void setMode(Mode argMode);
 	std::string getStatusTxt();
