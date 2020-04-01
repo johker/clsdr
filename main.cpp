@@ -15,6 +15,7 @@
 #include "dhtm/stringConstants.hpp"
 #include "dhtm/terminal.hpp"
 #include "dhtm/terminalController.hpp"
+#include "utils/itcMessage.hpp"
 #include "utils/itcQueue.hpp"
 
 

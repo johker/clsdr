@@ -13,8 +13,9 @@ find_package(xtensor REQUIRED)
 find_package(Curses REQUIRED) 
 
 find_library(panel REQUIRED)
+find_library(utilslib REQUIRED)
 find_package(Threads REQUIRED)
 
-target_link_libraries(dhtmlib panel xtensor ${CURSES_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(dhtmlib PUBLIC utilslib panel xtensor ${CURSES_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 
 target_include_directories(dhtmlib PUBLIC ${CMAKE_CURRENT_LIST_DIR})

@@ -6,18 +6,19 @@ project(dhtmdemo)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-add_library(dhtmlib)
 add_library(utilslib)
+add_library(dhtmlib)
 
-find_package(xtl REQUIRED)                                                                                                                                                                                      
+find_package(xtl REQUIRED)                                                                                                                                                                                   
 find_package(xtensor REQUIRED)
 find_package(Curses REQUIRED)
 
 find_library(panel REQUIRED)
 
-add_subdirectory(dhtm)
 add_subdirectory(utils)
+add_subdirectory(dhtm)
 
 add_executable(dhtmdemo main.cpp)
 
-target_link_libraries(dhtmdemo dhtmlib utilslib panel xtensor ${CURSES_LIBRARY})
+target_link_libraries(dhtmdemo PUBLIC dhtmlib panel xtensor ${CURSES_LIBRARY})
+

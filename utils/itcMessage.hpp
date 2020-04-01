@@ -14,6 +14,7 @@ enum class ItcType {
 class ItcMessage {
 
 public:
+	ItcMessage() {};
 	ItcMessage(ItcType argType, const char* argKey, float argValue) : type(argType), key(argKey), value(argValue) {}
 	ItcMessage(ItcType argType, const char* argKey, xt::xarray<bool> argSdr) : type(argType), key(argKey), sdr(argSdr) {}
 	virtual ~ItcMessage() {}
