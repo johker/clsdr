@@ -12,7 +12,11 @@ Terminal::~Terminal() {
 bool Terminal::startTerminal() {
 	// Initialize View	
 	setlocale(LC_ALL, "");					// Unicode support
-	initscr();						// Init screen		
+	//initscr();						// Init screen		
+	FILE *f = fopen("/dev/tty", "r+");
+	SCREEN *screen = newterm(NULL, f, f);
+	set_term(screen);
+	std::cout << "Starting Terminal \n" ;
 	clear();						// Clear terminal	 
 	timeout(0);						// Non-blocking input
 	noecho();						// No automatic printing
@@ -62,6 +66,7 @@ int Terminal::worker(Terminal* argTerminal) {
 	size_t max = 100; 
 	do {
 		// User Input
+		
 		while(1) { 
 			int key = getch();
 			if(key == ERR) break;
@@ -155,7 +160,6 @@ void Terminal::selUp() {
 		selItem = (selItem == 0) ? menuStack.back()->children.size()-1 : selItem-1;
 		menuStack.back()->selChild = selItem;
 	}
-	printControlBar();
 }
 void Terminal::selDown() {
 	auto& mi = menuStack.back()->children.at(selItem);
@@ -168,7 +172,6 @@ void Terminal::selDown() {
 		selItem = (selItem == menuStack.back()->children.size()-1) ? 0 : selItem+1;
 		menuStack.back()->selChild = selItem;
 	}
-	printControlBar();
 }
 void Terminal::selLeft() {
 	if(menuStack.size()>1) {
@@ -179,7 +182,6 @@ void Terminal::selLeft() {
 	}
 	keyInput = "";		// Clear keyboard input
 	termCtrl->setMode(Mode::SELECT);
-	printControlBar();
 }
 void Terminal::selRight() {
 	if(collapsed) {
@@ -190,7 +192,6 @@ void Terminal::selRight() {
 		menuStack.push_back(mi);
 		selItem = 0;
 	}	
-	printControlBar();
 }
 void Terminal::numEntry(int key) {
 	if(key == KEY_DOT && keyInput.find('.') != std::string::npos) {
@@ -203,7 +204,6 @@ void Terminal::numEntry(int key) {
 	} else {
 		keyInput.append(std::string(1, char(key)));
 	}	
-	printControlBar();
 }
 void Terminal::enter() {
 	// TODO: Check for SelectItem 
@@ -222,16 +222,14 @@ void Terminal::enter() {
 			termCtrl->setMode(Mode::EDIT);
 		}
 	}
-	printControlBar();
 }
 void Terminal::collapse() {
 	menuStack.resize(1);
 	collapsed = true;
-	printControlBar();
 }
 void Terminal::printControlBar() 
 {
-	wclear(ctrlwin);
+	werase(ctrlwin);
 	int i = 0, x = 3, y = 1;
 	box(ctrlwin,0,0); 
 	for(auto& menuItem : menuStack) { 	// Menu > Submenu > ... > Leaf : (Parameter)
@@ -276,7 +274,7 @@ void Terminal::printControlBar()
 	wrefresh(ctrlwin);
 }
 void Terminal::printStatusBar()  {
-	wclear(statuswin);
+	werase(statuswin);
 	int x,y; 
 	x = 3;
 	y = 1;	
@@ -292,7 +290,7 @@ void Terminal::printContentPane(){
 	int xoff,yoff;
 	int maxrows, maxcols;
 
-	wclear(contentwin);
+	werase(contentwin);
 	// Offset depending on HTM topology
 	// We need NCOLS << 1 for whitespaces
 	maxcols = termCtrl->avcols-2 < termCtrl->ncols << 1 ? termCtrl->avcols-2 : termCtrl->ncols << 1;   	
@@ -323,14 +321,14 @@ int Terminal::updateScreenDimension() {
 		wresize(statuswin,3,termCtrl->avcols-2);
 		wresize(contentwin,termCtrl->avrows-6,termCtrl->avcols-2);
 		mvwin(statuswin,termCtrl->avrows-3,1); 
-		wclear(stdscr);
-		wclear(ctrlwin);
+		werase(stdscr);
+		werase(ctrlwin);
 		box(ctrlwin,0,0);
 		wrefresh(ctrlwin);
-		wclear(statuswin);
+		werase(statuswin);
 		box(statuswin,0,0);
 		wrefresh(statuswin);
-		wclear(contentwin);
+		werase(contentwin);
 		box(contentwin,0,0);
 		wrefresh(contentwin); 
 		termCtrl->avrowstmo = termCtrl->avrows;
