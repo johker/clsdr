@@ -1,5 +1,8 @@
 target_sources(utilslib
+	PRIVATE
+		logger.cpp
 	PUBLIC
+		logger.hpp
 		itcQueue.hpp
 		itcMessage.hpp
 )

@@ -17,6 +17,7 @@
 #include "terminalController.hpp"
 #include "stringConstants.hpp"
 #include "../utils/itcMessage.hpp"
+#include "../utils/logger.hpp"
 
 namespace dh {
 

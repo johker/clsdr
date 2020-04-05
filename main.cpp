@@ -17,6 +17,7 @@
 #include "dhtm/terminalController.hpp"
 #include "utils/itcMessage.hpp"
 #include "utils/itcQueue.hpp"
+#include "utils/logger.hpp"
 
 
 // VIM like HTM interface:
@@ -48,7 +49,9 @@ int main(){
 	// Start Terminal Thread
 	dh::Terminal terminal(termCtrl);
 	terminal.startTerminal();
-	
+
+	DEBUG("Terminal started");
+
 	return 0;
 }
 

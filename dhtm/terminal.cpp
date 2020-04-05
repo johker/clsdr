@@ -12,11 +12,10 @@ Terminal::~Terminal() {
 bool Terminal::startTerminal() {
 	// Initialize View	
 	setlocale(LC_ALL, "");					// Unicode support
-	//initscr();						// Init screen		
-	FILE *f = fopen("/dev/tty", "r+");
-	SCREEN *screen = newterm(NULL, f, f);
-	set_term(screen);
-	std::cout << "Starting Terminal \n" ;
+	//FILE *f = fopen("/dev/tty", "r+");			// New tty	
+	//SCREEN *screen = newterm(NULL, f, f);			// Keep console output		
+	//set_term(screen);					// Init screen
+	initscr();
 	clear();						// Clear terminal	 
 	timeout(0);						// Non-blocking input
 	noecho();						// No automatic printing
