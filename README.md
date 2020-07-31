@@ -1,3 +1,3 @@
-## Command line plot for Sparse Distributed Representation ##
+Command line plot for Sparse Distributed Representation
 
 
