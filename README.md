@@ -1,4 +1,3 @@
-## Distributed Hierarchical Memory ##
+## Command line plot for Sparse Distributed Representation ##
 
-* Aligning Reference Frames using a consensus SDR
 
